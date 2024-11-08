@@ -1,11 +1,27 @@
+:root {
+  --text-color: #776e65;
+  --background-color: #faf8ef;
+  --button-color: #8f7a66;
+}
+
 * {
   box-sizing: border-box;
 }
 
 html,
 body,
+main,
 #app {
   height: 100%;
+}
+
+html {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
 }
 
 ul {

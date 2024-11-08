@@ -1,6 +1,8 @@
 <template>
-  <li :style="{ '--col': col, '--row': row }" class="tile">
-    <div class="tile__inner" :class="`tile__inner--${value}`">{{ value }}</div>
+  <li :style="{ '--col': col, '--row': row }" class="tile" :data-position="`${col}-${row}`">
+    <div class="tile__inner" :class="`tile__inner--${value}`">
+      {{ value }}
+    </div>
   </li>
 </template>
 
