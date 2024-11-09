@@ -21,44 +21,42 @@ export function useTileMovement() {
   }
 
   // TODO: Refactor this function
-  async function moveTiles(gridCellsMatrix: Cell[][]) {
-    return Promise.all(
-      gridCellsMatrix.flatMap((column) => {
-        const promises: Promise<void>[] = [];
+  // async function moveTiles(gridCellsMatrix: Cell[][]) {
+  //   return Promise.all(
+  //     gridCellsMatrix.flatMap((column) => {
+  //       const promises: Promise<void>[] = [];
 
-        // Starting from the second row since the first row cannot move up
-        for (let i = 1; i < column.length; i++) {
-          const currentCell = column[i];
+  //       // Starting from the second row since the first row cannot move up
+  //       for (let i = 1; i < column.length; i++) {
+  //         const currentCell = column[i];
 
-          if (!currentCell.tile) {
-            continue;
-          }
+  //         if (!currentCell.tile) continue;
 
-          let lastAvailableCell: Cell | null = null;
+  //         let lastAvailableCell: Cell | null = null;
 
-          for (let j = i - 1; j >= 0; j--) {
-            const targetCell = column[j];
+  //         for (let j = i - 1; j >= 0; j--) {
+  //           const targetCell = column[j];
 
-            if (_canCellAcceptTile(targetCell, currentCell.tile)) {
-              lastAvailableCell = targetCell;
-            }
-          }
+  //           if (_canCellAcceptTile(targetCell, currentCell.tile)) {
+  //             lastAvailableCell = targetCell;
+  //           }
+  //         }
 
-          if (lastAvailableCell) {
-            setTileInCell({
-              cell: lastAvailableCell,
-              tile: currentCell.tile,
-              isTileToMerge: !!lastAvailableCell.tile,
-            });
+  //         if (lastAvailableCell) {
+  //           setTileInCell({
+  //             cell: lastAvailableCell,
+  //             tile: currentCell.tile,
+  //             isTileToMerge: !!lastAvailableCell.tile,
+  //           });
 
-            delete currentCell.tile;
-          }
-        }
+  //           delete currentCell.tile;
+  //         }
+  //       }
 
-        return promises;
-      }),
-    );
-  }
+  //       return promises;
+  //     }),
+  //   );
+  // }
 
   function canSlide(gridCellsMatrix: Cell[][]) {
     return gridCellsMatrix.some((column) =>
@@ -70,5 +68,5 @@ export function useTileMovement() {
     );
   }
 
-  return { moveTiles, setTileInCell, canSlide };
+  return { _canCellAcceptTile, setTileInCell, canSlide };
 }
