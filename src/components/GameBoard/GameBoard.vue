@@ -1,56 +1,53 @@
 <template>
   <div class="game-wrapper">
-    <h1 style="margin: 0">2048</h1>
-    <p style="margin: 0">
-      Use arrow keys to move tiles. Tiles with the same number merge into one when they touch. Add
-      them up to reach 2048!
-    </p>
-    <h2>Score: {{ score }}</h2>
+    <game-board-header :current-score="score" :best-score="0"></game-board-header>
+    <game-board-controls @click:new-game="startGame"></game-board-controls>
     <div class="game-container">
-      <GridContainer :size="gridSize"></GridContainer>
-      <TileContainer>
-        <TileItem v-for="{ id, value, col, row } in tilesToRender" :key="id" :value="value" :col="col" :row="row"
-          :id="id">
-        </TileItem>
-      </TileContainer>
+      <grid-container :size="gridSize"></grid-container>
+      <tile-container>
+        <tile-item v-for="tile in renderedTiles" :key="tile.id" :tile="tile"></tile-item>
+      </tile-container>
     </div>
+    <game-board-instructions></game-board-instructions>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, toValue, nextTick } from "vue";
+import { ref, onMounted, toValue, nextTick, onBeforeUnmount } from "vue";
 
 import GridContainer from "@/components/GridContainer/GridContainer.vue";
 import TileContainer from "@/components/Tile/Container/TileContainer.vue";
 import TileItem from "@/components/Tile/Item/TileItem.vue";
+import GameBoardHeader from "@/components/GameBoard/Header/GameBoardHeader.vue";
+import GameBoardInstructions from "@/components/GameBoard/Instructions/GameBoardInstructions.vue";
+import GameBoardControls from "@/components/GameBoard/Controls/GameBoardControls.vue";
 
-import { useGrid } from "@/composables/useGrid";
-import { useTileMovement } from "@/composables/useTileMovement";
+import { useGridCells } from "@/composables/useGridCells";
+import { useTiles } from "@/composables/useTiles";
 import { useGameState } from "@/composables/useGameState";
 
 import type { Cell, Tile } from "@/types";
 
 const gridSize = ref(6);
-const tilesToRender = ref<Tile[]>([]);
 
-const { gridCells, gridCellsByColumn, gridCellsByRow, getRandomEmptyGridCell } = useGrid(toValue(gridSize));
-const { setTileInCell, canSlide, canCellAcceptTile } = useTileMovement();
-const { score, endGame, mergeTilesInGridCells } = useGameState();
+const { gridCells, gridCellsByDirection, getRandomEmptyGridCell, resetGridCells } = useGridCells();
+const { renderedTiles, setTileInCell, canTileSlide, moveTiles, setRenderedTiles } = useTiles();
+const { canAcceptUserInput, score, endGame, mergeTilesInGridCells, setCanAcceptUserInput } = useGameState();
 
-function addKeyupEventHandler() {
-  document.addEventListener("keyup", handleKeyupEvent, { once: true });
-}
-
-function addNewTile() {
+function addTileToCell() {
   const cell = getRandomEmptyGridCell();
 
   setTileInCell({ cell, tile: { value: 2 } });
+  setRenderedTiles([...renderedTiles.value, cell.tile!]);
+
+  return cell;
 }
 
 async function handleKeyupEvent(event: KeyboardEvent) {
+  if (!canAcceptUserInput.value) return;
+
   const moveTilesIfPossible = async (gridCellsMatrix: Cell[][]) => {
-    if (!canSlide(gridCellsMatrix)) {
-      addKeyupEventHandler();
+    if (!canTileSlide(gridCellsMatrix)) {
       return false;
     }
 
@@ -58,16 +55,11 @@ async function handleKeyupEvent(event: KeyboardEvent) {
     return true;
   };
 
-  const actionData: Record<string, Cell[][]> = {
-    ArrowLeft: gridCellsByRow.value,
-    ArrowRight: gridCellsByRow.value.map(row => [...row].reverse()),
-    ArrowUp: gridCellsByColumn.value,
-    ArrowDown: gridCellsByColumn.value.map(col => [...col].reverse()),
-  };
+  const currentActionData = gridCellsByDirection.value[event.key];
 
-  const currentActionData = actionData[event.key];
+  setCanAcceptUserInput(false);
 
-  if (currentActionData && await moveTilesIfPossible(currentActionData)) {
+  if (currentActionData && (await moveTilesIfPossible(currentActionData))) {
     mergeTilesInGridCells(toValue(gridCells));
 
     const idsToRender = gridCells.value.reduce<Record<string, Tile>>((acc, cell) => {
@@ -78,90 +70,44 @@ async function handleKeyupEvent(event: KeyboardEvent) {
       return acc;
     }, {});
 
-    tilesToRender.value = tilesToRender.value
+    const updatedrenderedTiles = renderedTiles.value
       .filter((tile) => Object.keys(idsToRender).includes(tile.id))
       .map((tile) => idsToRender[tile.id]);
 
-    // Add new tile
-    const cell = getRandomEmptyGridCell();
+    setRenderedTiles(updatedrenderedTiles);
 
-    setTileInCell({ cell, tile: { value: 2 } });
-    tilesToRender.value.push(cell.tile!);
+    const cell = addTileToCell();
 
-    if (Object.values(actionData).every((data) => !canSlide(data))) {
+    if (Object.values(gridCellsByDirection.value).every((data) => !canTileSlide(data))) {
       await nextTick();
-      document.querySelector(`[data-id="${cell.tile!.id}"]`)?.addEventListener("animationend", () => {
-        return endGame();
-      }, { once: true });
+      document.querySelector(`[data-id="${cell.tile!.id}"]`)?.addEventListener(
+        "animationend",
+        () => {
+          return endGame();
+        },
+        { once: true },
+      );
     }
   }
 
-  addKeyupEventHandler();
+  setCanAcceptUserInput(true);
 }
 
-async function moveTiles(gridCellsMatrix: Cell[][]) {
-  return Promise.all(
-    gridCellsMatrix.flatMap((column) => {
-      const promises: Promise<void>[] = [];
+function startGame() {
+  score.value = 0;
 
-      // Starting from the second row since the first row cannot move up
-      for (let i = 1; i < column.length; i++) {
-        const currentCell = column[i];
-
-        if (!currentCell.tile) continue;
-
-        let lastAvailableCell: Cell | null = null;
-
-        for (let j = i - 1; j >= 0; j--) {
-          const targetCell = column[j];
-
-          if (!canCellAcceptTile(targetCell, currentCell.tile)) {
-            break;
-          }
-
-          lastAvailableCell = targetCell;
-        }
-
-        if (lastAvailableCell) {
-          const elem = document.querySelector(`[data-id="${currentCell.tile.id}"]`);
-
-          promises.push(new Promise<void>((resolve) => {
-            elem?.addEventListener("transitionend", () => resolve(), { once: true });
-          }));
-
-          setTileInCell({
-            cell: lastAvailableCell,
-            tile: currentCell.tile,
-            isTileToMerge: !!lastAvailableCell.tile,
-          });
-
-          delete currentCell.tile;
-
-          tilesToRender.value.forEach(tile => {
-            if ([lastAvailableCell.tile?.id, lastAvailableCell.tileToMerge?.id].includes(tile.id)) {
-              tile.col = lastAvailableCell.col;
-              tile.row = lastAvailableCell.row;
-            }
-          })
-        }
-      }
-
-      return promises;
-    }),
-  );
+  setRenderedTiles([]);
+  resetGridCells(gridSize.value);
+  addTileToCell();
 }
 
 onMounted(() => {
-  addNewTile();
-  addKeyupEventHandler();
+  startGame();
+  document.addEventListener("keyup", handleKeyupEvent);
+});
 
-  tilesToRender.value = gridCells.value.reduce<Tile[]>((acc, cell) => {
-    if (cell.tile) {
-      acc.push(cell.tile);
-    }
-
-    return acc;
-  }, []);
+onBeforeUnmount(() => {
+  document.removeEventListener("keyup", handleKeyupEvent);
 });
 </script>
 
@@ -174,14 +120,16 @@ onMounted(() => {
   // 4x4 grid size = 16vmin tile size
   // 5x5 grid size = 14vmin tile size
   // ...
-  // Analyzing the above equation, it's clear that the formula should be: --tile-size = 24 - 2 x gridSize
+  // Analyzing the above equation, it's clear that the formula should be: --tile-size = 24 - 2 x gridSize,
+  // where 24 is the maximum tile size.
   --tile-size: calc((24 - 2 * v-bind(gridSize)) * 1vmin);
 
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   height: 100%;
+  width: calc(((var(--tile-size) + var(--board-gap)) * v-bind(gridSize)) + var(--board-gap));
+  margin: 0 auto;
 }
 
 .game-container {
