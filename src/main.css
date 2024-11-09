@@ -1,11 +1,12 @@
 :root {
-  --text-color: #776e65;
-  --background-color: #faf8ef;
-  --button-color: #8f7a66;
+  --board-color: rgb(187 173 160);
+  --text-color-light: rgb(255 255 255);
+  --text-color-dark: rgb(119 110 101);
 }
 
 * {
   box-sizing: border-box;
+  line-height: 1.5;
 }
 
 html,
@@ -20,12 +21,17 @@ html {
 }
 
 body {
-  background-color: var(--background-color);
-  color: var(--text-color);
+  background-color: #faf8ef;
+  color: var(--text-color-dark);
 }
 
 ul {
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+body,
+p {
+  margin: 0;
 }

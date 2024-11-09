@@ -1,20 +1,15 @@
 <template>
-  <li :style="{ '--col': col, '--row': row }" class="tile" :data-id="id">
-    <div class="tile__inner" :class="`tile__inner--${value}`">
-      {{ value }}
+  <li :style="{ '--col': tile.col, '--row': tile.row }" :data-id="tile.id" class="tile">
+    <div class="tile__inner" :class="`tile__inner--${tile.value}`">
+      {{ tile.value }}
     </div>
   </li>
 </template>
 
 <script setup lang="ts">
-interface Props {
-  value: number;
-  col: number;
-  row: number;
-  id: string;
-}
+import type { Tile } from '@/types';
 
-defineProps<Props>();
+defineProps<{ tile: Tile }>();
 </script>
 
 <style lang="scss" scoped>
@@ -40,10 +35,8 @@ $tile-colors: (
   transition-timing-function: cubic-bezier(0.39, 0.575, 0.565, 1);
   transition-property: transform, background-color;
   will-change: transform;
-  transform: translate(
-    calc((var(--col) - 1) * (var(--tile-size) + var(--board-gap))),
-    calc((var(--row) - 1) * (var(--tile-size) + var(--board-gap)))
-  );
+  transform: translate(calc((var(--col) - 1) * (var(--tile-size) + var(--board-gap))),
+      calc((var(--row) - 1) * (var(--tile-size) + var(--board-gap))));
 }
 
 .tile__inner {
