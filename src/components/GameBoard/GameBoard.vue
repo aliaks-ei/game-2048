@@ -18,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, toValue, nextTick } from "vue";
+import { ref, onMounted, toValue, nextTick } from "vue";
 
 import GridContainer from "@/components/GridContainer/GridContainer.vue";
 import TileContainer from "@/components/Tile/Container/TileContainer.vue";
@@ -30,46 +30,12 @@ import { useGameState } from "@/composables/useGameState";
 
 import type { Cell, Tile } from "@/types";
 
-const gridSize = ref(4);
-
-const { gridCells, getRandomEmptyGridCell } = useGrid(toValue(gridSize));
-const { setTileInCell, canSlide, _canCellAcceptTile } = useTileMovement();
-const { score, endGame, mergeTilesInGridCells } = useGameState();
-
+const gridSize = ref(6);
 const tilesToRender = ref<Tile[]>([]);
 
-const gridCellsByColumn = computed(() => {
-  return gridCells.value.reduce<Cell[][]>((acc, cell) => {
-    acc[cell.col - 1] = acc[cell.col - 1] || [];
-    acc[cell.col - 1][cell.row - 1] = cell;
-
-    return acc;
-  }, []);
-});
-const gridCellsByRow = computed(() => {
-  return gridCells.value.reduce<Cell[][]>((acc, cell) => {
-    acc[cell.row - 1] = acc[cell.row - 1] || [];
-    acc[cell.row - 1][cell.col - 1] = cell;
-
-    return acc;
-  }, []);
-});
-
-function canSlideUp() {
-  return canSlide(gridCellsByColumn.value);
-}
-
-function canSlideDown() {
-  return canSlide(gridCellsByColumn.value.map((col) => [...col].reverse()));
-}
-
-function canSlideLeft() {
-  return canSlide(gridCellsByRow.value);
-}
-
-function canSlideRight() {
-  return canSlide(gridCellsByRow.value.map((row) => [...row].reverse()));
-}
+const { gridCells, gridCellsByColumn, gridCellsByRow, getRandomEmptyGridCell } = useGrid(toValue(gridSize));
+const { setTileInCell, canSlide, canCellAcceptTile } = useTileMovement();
+const { score, endGame, mergeTilesInGridCells } = useGameState();
 
 function addKeyupEventHandler() {
   document.addEventListener("keyup", handleKeyupEvent, { once: true });
@@ -92,16 +58,16 @@ async function handleKeyupEvent(event: KeyboardEvent) {
     return true;
   };
 
-  const keyActions: Record<string, () => Promise<boolean>> = {
-    ArrowLeft: () => moveTilesIfPossible(gridCellsByRow.value),
-    ArrowRight: () => moveTilesIfPossible(gridCellsByRow.value.map(row => [...row].reverse())),
-    ArrowUp: () => moveTilesIfPossible(gridCellsByColumn.value),
-    ArrowDown: () => moveTilesIfPossible(gridCellsByColumn.value.map(col => [...col].reverse())),
+  const actionData: Record<string, Cell[][]> = {
+    ArrowLeft: gridCellsByRow.value,
+    ArrowRight: gridCellsByRow.value.map(row => [...row].reverse()),
+    ArrowUp: gridCellsByColumn.value,
+    ArrowDown: gridCellsByColumn.value.map(col => [...col].reverse()),
   };
 
-  const action = keyActions[event.key];
+  const currentActionData = actionData[event.key];
 
-  if (action && await action()) {
+  if (currentActionData && await moveTilesIfPossible(currentActionData)) {
     mergeTilesInGridCells(toValue(gridCells));
 
     const idsToRender = gridCells.value.reduce<Record<string, Tile>>((acc, cell) => {
@@ -120,13 +86,13 @@ async function handleKeyupEvent(event: KeyboardEvent) {
     const cell = getRandomEmptyGridCell();
 
     setTileInCell({ cell, tile: { value: 2 } });
+    tilesToRender.value.push(cell.tile!);
 
-    nextTick(() =>tilesToRender.value.push(cell.tile!));
-
-    // TODO: Refactor this
-    if (!canSlideUp() && !canSlideDown() && !canSlideLeft() && !canSlideRight()) {
-      endGame();
-      return;
+    if (Object.values(actionData).every((data) => !canSlide(data))) {
+      await nextTick();
+      document.querySelector(`[data-id="${cell.tile!.id}"]`)?.addEventListener("animationend", () => {
+        return endGame();
+      }, { once: true });
     }
   }
 
@@ -149,7 +115,7 @@ async function moveTiles(gridCellsMatrix: Cell[][]) {
         for (let j = i - 1; j >= 0; j--) {
           const targetCell = column[j];
 
-          if (!_canCellAcceptTile(targetCell, currentCell.tile)) {
+          if (!canCellAcceptTile(targetCell, currentCell.tile)) {
             break;
           }
 
@@ -160,10 +126,7 @@ async function moveTiles(gridCellsMatrix: Cell[][]) {
           const elem = document.querySelector(`[data-id="${currentCell.tile.id}"]`);
 
           promises.push(new Promise<void>((resolve) => {
-            elem?.addEventListener("transitionend", () => {
-              console.log("transitionend")
-              resolve();
-            }, { once: true });
+            elem?.addEventListener("transitionend", () => resolve(), { once: true });
           }));
 
           setTileInCell({
@@ -190,8 +153,8 @@ async function moveTiles(gridCellsMatrix: Cell[][]) {
 
 onMounted(() => {
   addNewTile();
-  addNewTile();
   addKeyupEventHandler();
+
   tilesToRender.value = gridCells.value.reduce<Tile[]>((acc, cell) => {
     if (cell.tile) {
       acc.push(cell.tile);
