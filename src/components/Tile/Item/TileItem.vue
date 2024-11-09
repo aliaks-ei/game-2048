@@ -1,5 +1,5 @@
 <template>
-  <li :style="{ '--col': col, '--row': row }" class="tile" :data-position="`${col}-${row}`">
+  <li :style="{ '--col': col, '--row': row }" class="tile" :data-id="id">
     <div class="tile__inner" :class="`tile__inner--${value}`">
       {{ value }}
     </div>
@@ -11,6 +11,7 @@ interface Props {
   value: number;
   col: number;
   row: number;
+  id: string;
 }
 
 defineProps<Props>();
@@ -35,7 +36,7 @@ $tile-colors: (
   position: absolute;
   width: var(--tile-size);
   height: var(--tile-size);
-  transition-duration: 250ms;
+  transition-duration: 200ms;
   transition-timing-function: cubic-bezier(0.39, 0.575, 0.565, 1);
   transition-property: transform, background-color;
   will-change: transform;
@@ -54,7 +55,7 @@ $tile-colors: (
   width: 100%;
   height: 100%;
   border-radius: var(--board-border-radius);
-  animation: appear 250ms ease-in-out;
+  animation: appear 200ms cubic-bezier(0.39, 0.575, 0.565, 1);
   box-shadow: 0.8px 1.6px 1.6px hsl(0deg 0% 0% / 0.3);
 
   @each $value, $color in $tile-colors {

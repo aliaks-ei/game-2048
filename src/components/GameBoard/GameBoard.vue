@@ -9,20 +9,16 @@
     <div class="game-container">
       <GridContainer :size="gridSize"></GridContainer>
       <TileContainer>
-        <TileItem
-          v-for="{ id, value, col, row } in tilesToRender"
-          :key="id"
-          :value="value"
-          :col="col"
-          :row="row"
-        ></TileItem>
+        <TileItem v-for="{ id, value, col, row } in tilesToRender" :key="id" :value="value" :col="col" :row="row"
+          :id="id">
+        </TileItem>
       </TileContainer>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, toValue } from "vue";
+import { ref, onMounted, toValue, nextTick } from "vue";
 
 import GridContainer from "@/components/GridContainer/GridContainer.vue";
 import TileContainer from "@/components/Tile/Container/TileContainer.vue";
@@ -34,53 +30,12 @@ import { useGameState } from "@/composables/useGameState";
 
 import type { Cell, Tile } from "@/types";
 
-const gridSize = ref(2);
+const gridSize = ref(6);
+const tilesToRender = ref<Tile[]>([]);
 
-const { gridCells, getRandomEmptyGridCell } = useGrid(toValue(gridSize));
-const { setTileInCell, canSlide, moveTiles } = useTileMovement();
+const { gridCells, gridCellsByColumn, gridCellsByRow, getRandomEmptyGridCell } = useGrid(toValue(gridSize));
+const { setTileInCell, canSlide, canCellAcceptTile } = useTileMovement();
 const { score, endGame, mergeTilesInGridCells } = useGameState();
-
-const tilesToRender = computed(() => {
-  return gridCells.value.reduce<Tile[]>((acc, cell) => {
-    if (cell.tile) {
-      acc.push(cell.tile);
-    }
-
-    return acc;
-  }, []);
-});
-const gridCellsByColumn = computed(() => {
-  return gridCells.value.reduce<Cell[][]>((acc, cell) => {
-    acc[cell.col - 1] = acc[cell.col - 1] || [];
-    acc[cell.col - 1][cell.row - 1] = cell;
-
-    return acc;
-  }, []);
-});
-const gridCellsByRow = computed(() => {
-  return gridCells.value.reduce<Cell[][]>((acc, cell) => {
-    acc[cell.row - 1] = acc[cell.row - 1] || [];
-    acc[cell.row - 1][cell.col - 1] = cell;
-
-    return acc;
-  }, []);
-});
-
-function canSlideUp() {
-  return canSlide(gridCellsByColumn.value);
-}
-
-function canSlideDown() {
-  return canSlide(gridCellsByColumn.value.map((col) => [...col].reverse()));
-}
-
-function canSlideLeft() {
-  return canSlide(gridCellsByRow.value);
-}
-
-function canSlideRight() {
-  return canSlide(gridCellsByRow.value.map((row) => [...row].reverse()));
-}
 
 function addKeyupEventHandler() {
   document.addEventListener("keyup", handleKeyupEvent, { once: true });
@@ -103,32 +58,110 @@ async function handleKeyupEvent(event: KeyboardEvent) {
     return true;
   };
 
-  const keyActions: Record<string, () => Promise<boolean>> = {
-    ArrowLeft: () => moveTilesIfPossible(gridCellsByRow.value),
-    ArrowRight: () => moveTilesIfPossible(gridCellsByRow.value.map(row => [...row].reverse())),
-    ArrowUp: () => moveTilesIfPossible(gridCellsByColumn.value),
-    ArrowDown: () => moveTilesIfPossible(gridCellsByColumn.value.map(col => [...col].reverse())),
+  const actionData: Record<string, Cell[][]> = {
+    ArrowLeft: gridCellsByRow.value,
+    ArrowRight: gridCellsByRow.value.map(row => [...row].reverse()),
+    ArrowUp: gridCellsByColumn.value,
+    ArrowDown: gridCellsByColumn.value.map(col => [...col].reverse()),
   };
 
-  const action = keyActions[event.key];
+  const currentActionData = actionData[event.key];
 
-  if (action && await action()) {
+  if (currentActionData && await moveTilesIfPossible(currentActionData)) {
     mergeTilesInGridCells(toValue(gridCells));
-    addNewTile();
 
-    // TODO: Refactor this
-    if (!canSlideUp() && !canSlideDown() && !canSlideLeft() && !canSlideRight()) {
-      endGame();
-      return;
+    const idsToRender = gridCells.value.reduce<Record<string, Tile>>((acc, cell) => {
+      if (cell.tile) {
+        acc[cell.tile.id] = cell.tile;
+      }
+
+      return acc;
+    }, {});
+
+    tilesToRender.value = tilesToRender.value
+      .filter((tile) => Object.keys(idsToRender).includes(tile.id))
+      .map((tile) => idsToRender[tile.id]);
+
+    // Add new tile
+    const cell = getRandomEmptyGridCell();
+
+    setTileInCell({ cell, tile: { value: 2 } });
+    tilesToRender.value.push(cell.tile!);
+
+    if (Object.values(actionData).every((data) => !canSlide(data))) {
+      await nextTick();
+      document.querySelector(`[data-id="${cell.tile!.id}"]`)?.addEventListener("animationend", () => {
+        return endGame();
+      }, { once: true });
     }
   }
 
   addKeyupEventHandler();
 }
 
+async function moveTiles(gridCellsMatrix: Cell[][]) {
+  return Promise.all(
+    gridCellsMatrix.flatMap((column) => {
+      const promises: Promise<void>[] = [];
+
+      // Starting from the second row since the first row cannot move up
+      for (let i = 1; i < column.length; i++) {
+        const currentCell = column[i];
+
+        if (!currentCell.tile) continue;
+
+        let lastAvailableCell: Cell | null = null;
+
+        for (let j = i - 1; j >= 0; j--) {
+          const targetCell = column[j];
+
+          if (!canCellAcceptTile(targetCell, currentCell.tile)) {
+            break;
+          }
+
+          lastAvailableCell = targetCell;
+        }
+
+        if (lastAvailableCell) {
+          const elem = document.querySelector(`[data-id="${currentCell.tile.id}"]`);
+
+          promises.push(new Promise<void>((resolve) => {
+            elem?.addEventListener("transitionend", () => resolve(), { once: true });
+          }));
+
+          setTileInCell({
+            cell: lastAvailableCell,
+            tile: currentCell.tile,
+            isTileToMerge: !!lastAvailableCell.tile,
+          });
+
+          delete currentCell.tile;
+
+          tilesToRender.value.forEach(tile => {
+            if ([lastAvailableCell.tile?.id, lastAvailableCell.tileToMerge?.id].includes(tile.id)) {
+              tile.col = lastAvailableCell.col;
+              tile.row = lastAvailableCell.row;
+            }
+          })
+        }
+      }
+
+      return promises;
+    }),
+  );
+}
+
 onMounted(() => {
   addNewTile();
   addKeyupEventHandler();
+
+  tilesToRender.value = gridCells.value.reduce<Tile[]>((acc, cell) => {
+    if (cell.tile) {
+      acc.push(cell.tile);
+    }
+
+    return acc;
+  }, []);
 });
 </script>
 
