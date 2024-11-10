@@ -1,4 +1,5 @@
 import { reactive, ref } from "vue";
+import { useLocalStorage } from "@/composables/useLocalStorage";
 
 import type { Cell } from "@/types";
 
@@ -28,6 +29,7 @@ const GAME_OVER_DIALOG_CONTENT: Record<GameOverScenario, GameOverDialogContent> 
 export function useGameState() {
   const gridSize = ref(6);
   const score = ref(0);
+  const bestScore = ref(useLocalStorage<number>("bestScore", 0).data);
   const canAcceptUserInput = ref(true); // no user input while tiles are moving
   const gameOverDialog = reactive({
     show: false,
@@ -39,6 +41,11 @@ export function useGameState() {
     gameOverDialog.show = true;
     gameOverDialog.title = GAME_OVER_DIALOG_CONTENT[scenario].title;
     gameOverDialog.message = GAME_OVER_DIALOG_CONTENT[scenario].message;
+
+    // Updating best score
+    if (score.value > bestScore.value) {
+      bestScore.value = score.value;
+    }
   }
 
   function mergeTilesInGridCells(gridCells: Cell[]) {
@@ -62,6 +69,7 @@ export function useGameState() {
     gridSize,
     canAcceptUserInput,
     score,
+    bestScore,
     gameOverDialog,
     endGame,
     mergeTilesInGridCells,

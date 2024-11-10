@@ -1,7 +1,7 @@
 <template>
   <div class="game-wrapper">
     <!-- Header -->
-    <game-board-header :current-score="score" :best-score="0"></game-board-header>
+    <game-board-header :current-score="score" :best-score="bestScore"></game-board-header>
 
     <!-- Controls -->
     <game-board-controls @click:new-game="startGame"></game-board-controls>
@@ -15,7 +15,7 @@
     </div>
 
     <!-- Instructions -->
-    <game-board-instructions></game-board-instructions>
+    <!-- <game-board-instructions></game-board-instructions> -->
 
     <!-- Dialogs -->
     <app-dialog v-model="gameOverDialog.show" :title="gameOverDialog.title">
@@ -37,7 +37,7 @@ import GridContainer from "@/components/GridContainer/GridContainer.vue";
 import TileContainer from "@/components/Tile/Container/TileContainer.vue";
 import TileItem from "@/components/Tile/Item/TileItem.vue";
 import GameBoardHeader from "@/components/GameBoard/Header/GameBoardHeader.vue";
-import GameBoardInstructions from "@/components/GameBoard/Instructions/GameBoardInstructions.vue";
+// import GameBoardInstructions from "@/components/GameBoard/Instructions/GameBoardInstructions.vue";
 import GameBoardControls from "@/components/GameBoard/Controls/GameBoardControls.vue";
 
 import { useGridCells } from "@/composables/useGridCells";
@@ -58,6 +58,7 @@ const {
 const {
   canAcceptUserInput,
   score,
+  bestScore,
   gameOverDialog,
   gridSize,
   endGame,
