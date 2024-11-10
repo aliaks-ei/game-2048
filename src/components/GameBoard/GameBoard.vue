@@ -38,11 +38,13 @@ import GameBoardControls from "@/components/GameBoard/Controls/GameBoardControls
 
 import { useGridCells } from "@/composables/useGridCells";
 import { useTiles } from "@/composables/useTiles";
-import { useGameState } from "@/composables/useGameState";
+import { useGameStateStore } from "@/stores/gameState";
 
 import type { Cell, Tile } from "@/types";
+import { storeToRefs } from "pinia";
 
 const { gridCells, gridCellsByDirection, getRandomEmptyGridCell, resetGridCells } = useGridCells();
+const gameStateStore = useGameStateStore();
 const {
   renderedTiles,
   hasReachedHighestValue,
@@ -50,18 +52,11 @@ const {
   canTileSlide,
   moveTiles,
   setRenderedTiles,
-} = useTiles();
-const {
-  canAcceptUserInput,
-  score,
-  bestScore,
-  gameOverDialog,
-  gridSize,
-  numObstacles,
-  endGame,
   mergeTilesInGridCells,
-  setCanAcceptUserInput,
-} = useGameState();
+} = useTiles();
+const { canAcceptUserInput, score, bestScore, gameOverDialog, gridSize, numObstacles } =
+  storeToRefs(gameStateStore);
+const { endGame, setCanAcceptUserInput, setScore, hideGameOverDialog } = gameStateStore;
 
 function addTileToCell({ isObstacle }: { isObstacle?: boolean } = {}) {
   const cell = getRandomEmptyGridCell();
@@ -73,7 +68,7 @@ function addTileToCell({ isObstacle }: { isObstacle?: boolean } = {}) {
 }
 
 async function handleKeyupEvent(event: KeyboardEvent) {
-  if (!canAcceptUserInput.value) return;
+  if (!canAcceptUserInput) return;
 
   const moveTilesIfPossible = async (gridCellsMatrix: Cell[][]) => {
     if (!canTileSlide(gridCellsMatrix)) {
@@ -124,9 +119,8 @@ async function handleKeyupEvent(event: KeyboardEvent) {
 }
 
 function startGame() {
-  score.value = 0;
-  gameOverDialog.show = false;
-
+  hideGameOverDialog();
+  setScore(0);
   setRenderedTiles([]);
   resetGridCells(gridSize.value);
   addTileToCell();

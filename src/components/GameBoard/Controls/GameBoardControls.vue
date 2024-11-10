@@ -43,11 +43,13 @@ import AppButton from "@/components/AppButton/AppButton.vue";
 import AppDialog from "@/components/AppDialog/AppDialog.vue";
 import AppSelect from "@/components/AppSelect/AppSelect.vue";
 
-import { useGameState } from "@/composables/useGameState";
+import { useGameStateStore } from "@/stores/gameState";
+import { storeToRefs } from "pinia";
 
 const emit = defineEmits(["click:new-game"]);
 
-const { gridSize, numObstacles } = useGameState();
+const { gridSize, numObstacles } = storeToRefs(useGameStateStore());
+const { setGridSize, setNumObstacles } = useGameStateStore();
 
 const showSettingsDialog = ref(false);
 const selectedGridSize = ref(gridSize.value);
@@ -67,12 +69,13 @@ const availableNumObstacles = computed(() =>
 
 function openSettingsDialog() {
   selectedGridSize.value = gridSize.value;
+  selectedNumObstacles.value = numObstacles.value;
   showSettingsDialog.value = true;
 }
 
 function handleSaveClick() {
-  gridSize.value = Number(selectedGridSize.value);
-  numObstacles.value = Number(selectedNumObstacles.value);
+  setGridSize(Number(selectedGridSize.value));
+  setNumObstacles(Number(selectedNumObstacles.value));
   showSettingsDialog.value = false;
 
   emit("click:new-game");
