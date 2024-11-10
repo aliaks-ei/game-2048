@@ -28,6 +28,7 @@ const GAME_OVER_DIALOG_CONTENT: Record<GameOverScenario, GameOverDialogContent> 
 
 // Shared state
 const gridSize = ref(useLocalStorage<number>("gridSize", 6).data);
+const numObstacles = ref(useLocalStorage<number>("numObstacles", 0).data);
 
 export function useGameState() {
   const score = ref(0);
@@ -69,6 +70,7 @@ export function useGameState() {
 
   return {
     gridSize,
+    numObstacles,
     canAcceptUserInput,
     score,
     bestScore,

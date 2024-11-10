@@ -21,25 +21,11 @@
       <form>
         <label class="board-controls__settings-item">
           <span>Grid size</span>
-          <select v-model="selectedGridSize" class="board-controls__select">
-            <option value="2">2 x 2</option>
-            <option value="3">3 x 3</option>
-            <option value="4">4 x 4</option>
-            <option value="5">5 x 5</option>
-            <option value="6">6 x 6</option>
-            <option value="7">7 x 7</option>
-            <option value="8">8 x 8</option>
-          </select>
+          <app-select v-model="selectedGridSize" :options="availableGridSizes"></app-select>
         </label>
         <label class="board-controls__settings-item">
-          <span>Obstacles</span>
-          <select v-model="selectedObstacles" class="board-controls__select">
-            <option value="0">None</option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-          </select>
+          <span>Obstacles (max: grid size - 1)</span>
+          <app-select v-model="selectedNumObstacles" :options="availableNumObstacles"></app-select>
         </label>
       </form>
       <template #actions>
@@ -51,20 +37,33 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch, computed } from "vue";
 
 import AppButton from "@/components/AppButton/AppButton.vue";
 import AppDialog from "@/components/AppDialog/AppDialog.vue";
+import AppSelect from "@/components/AppSelect/AppSelect.vue";
 
 import { useGameState } from "@/composables/useGameState";
 
 const emit = defineEmits(["click:new-game"]);
 
-const { gridSize } = useGameState();
+const { gridSize, numObstacles } = useGameState();
 
 const showSettingsDialog = ref(false);
 const selectedGridSize = ref(gridSize.value);
-const selectedObstacles = ref(0);
+const selectedNumObstacles = ref(numObstacles.value);
+const availableGridSizes = ref(
+  Array.from({ length: 7 }, (_, i) => i + 2).map((size) => ({
+    label: `${size} x ${size}`,
+    value: size,
+  })),
+);
+const availableNumObstacles = computed(() =>
+  Array.from({ length: selectedGridSize.value }, (_, i) => i).map((item) => ({
+    label: String(item),
+    value: item,
+  })),
+);
 
 function openSettingsDialog() {
   selectedGridSize.value = gridSize.value;
@@ -73,10 +72,17 @@ function openSettingsDialog() {
 
 function handleSaveClick() {
   gridSize.value = Number(selectedGridSize.value);
+  numObstacles.value = Number(selectedNumObstacles.value);
   showSettingsDialog.value = false;
 
   emit("click:new-game");
 }
+
+watch(selectedGridSize, (current) => {
+  if (current <= selectedNumObstacles.value) {
+    selectedNumObstacles.value = 0;
+  }
+});
 </script>
 
 <style lang="scss" scoped>
@@ -105,18 +111,11 @@ function handleSaveClick() {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.5rem;
+    gap: 2rem;
 
     & + & {
       margin-block-start: 0.5rem;
     }
-  }
-
-  &__select {
-    min-width: 3.5rem;
-    height: 1.5rem;
-    border: 1px solid var(--text-color-dark);
-    border-radius: 4px;
   }
 }
 </style>

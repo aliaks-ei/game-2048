@@ -1,6 +1,6 @@
 import { ref, watch } from "vue";
 
-type LocalStorageKeys = "bestScore" | "gridSize";
+type LocalStorageKeys = "bestScore" | "gridSize" | "numObstacles";
 
 export function useLocalStorage<T>(key: LocalStorageKeys, defaultValue?: T) {
   // Retrieve the initial value from localStorage and parse it as JSON, or use the default value

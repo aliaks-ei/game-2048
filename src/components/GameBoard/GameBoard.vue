@@ -57,15 +57,16 @@ const {
   bestScore,
   gameOverDialog,
   gridSize,
+  numObstacles,
   endGame,
   mergeTilesInGridCells,
   setCanAcceptUserInput,
 } = useGameState();
 
-function addTileToCell() {
+function addTileToCell({ isObstacle }: { isObstacle?: boolean } = {}) {
   const cell = getRandomEmptyGridCell();
 
-  setTileInCell({ cell, tile: { value: 2 } });
+  setTileInCell({ cell, tile: { value: isObstacle ? 0 : 2, isObstacle } });
   setRenderedTiles([...renderedTiles.value, cell.tile!]);
 
   return cell;
@@ -129,6 +130,9 @@ function startGame() {
   setRenderedTiles([]);
   resetGridCells(gridSize.value);
   addTileToCell();
+
+  // Add obstacles
+  Array.from({ length: numObstacles.value }).forEach(() => addTileToCell({ isObstacle: true }));
 
   document.removeEventListener("keyup", handleKeyupEvent);
   document.addEventListener("keyup", handleKeyupEvent);
