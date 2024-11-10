@@ -1,20 +1,38 @@
 <template>
   <div class="game-wrapper">
+    <!-- Header -->
     <game-board-header :current-score="score" :best-score="0"></game-board-header>
+
+    <!-- Controls -->
     <game-board-controls @click:new-game="startGame"></game-board-controls>
+
+    <!-- Board -->
     <div class="game-container">
       <grid-container :size="gridSize"></grid-container>
       <tile-container>
         <tile-item v-for="tile in renderedTiles" :key="tile.id" :tile="tile"></tile-item>
       </tile-container>
     </div>
+
+    <!-- Instructions -->
     <game-board-instructions></game-board-instructions>
+
+    <!-- Dialogs -->
+    <app-dialog v-model="gameOverDialog.show" :title="gameOverDialog.title">
+      {{ gameOverDialog.message }}
+      <template #actions>
+        <app-button @click="gameOverDialog.show = false" outline>Cancel</app-button>
+        <app-button @click="startGame">New Game</app-button>
+      </template>
+    </app-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, toValue, nextTick, onBeforeUnmount } from "vue";
+import { onMounted, toValue, nextTick, onBeforeUnmount, watch } from "vue";
 
+import AppButton from "@/components/AppButton/AppButton.vue";
+import AppDialog from "@/components/AppDialog/AppDialog.vue";
 import GridContainer from "@/components/GridContainer/GridContainer.vue";
 import TileContainer from "@/components/Tile/Container/TileContainer.vue";
 import TileItem from "@/components/Tile/Item/TileItem.vue";
@@ -28,11 +46,24 @@ import { useGameState } from "@/composables/useGameState";
 
 import type { Cell, Tile } from "@/types";
 
-const gridSize = ref(6);
-
 const { gridCells, gridCellsByDirection, getRandomEmptyGridCell, resetGridCells } = useGridCells();
-const { renderedTiles, setTileInCell, canTileSlide, moveTiles, setRenderedTiles } = useTiles();
-const { canAcceptUserInput, score, endGame, mergeTilesInGridCells, setCanAcceptUserInput } = useGameState();
+const {
+  renderedTiles,
+  hasReachedHighestValue,
+  setTileInCell,
+  canTileSlide,
+  moveTiles,
+  setRenderedTiles,
+} = useTiles();
+const {
+  canAcceptUserInput,
+  score,
+  gameOverDialog,
+  gridSize,
+  endGame,
+  mergeTilesInGridCells,
+  setCanAcceptUserInput,
+} = useGameState();
 
 function addTileToCell() {
   const cell = getRandomEmptyGridCell();
@@ -83,7 +114,8 @@ async function handleKeyupEvent(event: KeyboardEvent) {
       document.querySelector(`[data-id="${cell.tile!.id}"]`)?.addEventListener(
         "animationend",
         () => {
-          return endGame();
+          document.removeEventListener("keyup", handleKeyupEvent);
+          endGame("lose");
         },
         { once: true },
       );
@@ -95,15 +127,24 @@ async function handleKeyupEvent(event: KeyboardEvent) {
 
 function startGame() {
   score.value = 0;
+  gameOverDialog.show = false;
 
   setRenderedTiles([]);
   resetGridCells(gridSize.value);
   addTileToCell();
+
+  document.addEventListener("keyup", handleKeyupEvent);
 }
+
+watch(hasReachedHighestValue, (current) => {
+  if (current) {
+    document.removeEventListener("keyup", handleKeyupEvent);
+    endGame("win");
+  }
+});
 
 onMounted(() => {
   startGame();
-  document.addEventListener("keyup", handleKeyupEvent);
 });
 
 onBeforeUnmount(() => {

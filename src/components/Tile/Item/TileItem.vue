@@ -7,7 +7,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Tile } from '@/types';
+import type { Tile } from "@/types";
 
 defineProps<{ tile: Tile }>();
 </script>
@@ -35,15 +35,17 @@ $tile-colors: (
   transition-timing-function: cubic-bezier(0.39, 0.575, 0.565, 1);
   transition-property: transform, background-color;
   will-change: transform;
-  transform: translate(calc((var(--col) - 1) * (var(--tile-size) + var(--board-gap))),
-      calc((var(--row) - 1) * (var(--tile-size) + var(--board-gap))));
+  transform: translate(
+    calc((var(--col) - 1) * (var(--tile-size) + var(--board-gap))),
+    calc((var(--row) - 1) * (var(--tile-size) + var(--board-gap)))
+  );
 }
 
 .tile__inner {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
+  font-size: min(var(--tile-size) / 4, 4vw);
   font-weight: 600;
   width: 100%;
   height: 100%;
@@ -55,6 +57,18 @@ $tile-colors: (
     &--#{$value} {
       background-color: $color;
     }
+  }
+
+  &--8,
+  &--16,
+  &--32,
+  &--64,
+  &--128,
+  &--256,
+  &--512,
+  &--1024,
+  &--2048 {
+    color: var(--text-color-light);
   }
 }
 

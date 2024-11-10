@@ -1,10 +1,11 @@
 <template>
-  <button class="app-button" @click="$emit('click')">
+  <button class="app-button" :class="{ 'app-button--outline': outline }" @click="$emit('click')">
     <slot></slot>
   </button>
 </template>
 
 <script setup lang="ts">
+defineProps<{ outline?: boolean }>();
 defineEmits(["click"]);
 </script>
 
@@ -32,6 +33,16 @@ $button-color-active: rgb(116 99 82);
 
   &:active {
     transform: scale(0.95);
+  }
+
+  &--outline {
+    background-color: transparent;
+    border: 1px solid $button-color;
+    color: $button-color;
+
+    &:hover {
+      background-color: transparent;
+    }
   }
 }
 </style>

@@ -25,6 +25,11 @@ body {
   color: var(--text-color-dark);
 }
 
+main {
+  padding-inline: 1rem;
+  padding-block-end: 1rem;
+}
+
 ul {
   margin: 0;
   padding: 0;

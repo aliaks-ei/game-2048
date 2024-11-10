@@ -1,7 +1,7 @@
 <template>
   <p class="game-board-instructions">
-    <strong>HOW TO PLAY: </strong>Use your <strong>arrow keys</strong> to move tiles. When two
-    tiles with the same number touch, they <strong>merge into one! </strong>
+    <strong>HOW TO PLAY: </strong>Use your <strong>arrow keys</strong> to move tiles. When two tiles
+    with the same number touch, they <strong>merge into one! </strong>
   </p>
 </template>
 
