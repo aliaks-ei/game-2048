@@ -14,9 +14,6 @@
       </tile-container>
     </div>
 
-    <!-- Instructions -->
-    <!-- <game-board-instructions></game-board-instructions> -->
-
     <!-- Dialogs -->
     <app-dialog v-model="gameOverDialog.show" :title="gameOverDialog.title">
       {{ gameOverDialog.message }}
@@ -37,7 +34,6 @@ import GridContainer from "@/components/GridContainer/GridContainer.vue";
 import TileContainer from "@/components/Tile/Container/TileContainer.vue";
 import TileItem from "@/components/Tile/Item/TileItem.vue";
 import GameBoardHeader from "@/components/GameBoard/Header/GameBoardHeader.vue";
-// import GameBoardInstructions from "@/components/GameBoard/Instructions/GameBoardInstructions.vue";
 import GameBoardControls from "@/components/GameBoard/Controls/GameBoardControls.vue";
 
 import { useGridCells } from "@/composables/useGridCells";
@@ -134,6 +130,7 @@ function startGame() {
   resetGridCells(gridSize.value);
   addTileToCell();
 
+  document.removeEventListener("keyup", handleKeyupEvent);
   document.addEventListener("keyup", handleKeyupEvent);
 }
 

@@ -1,27 +1,29 @@
 <template>
   <Transition :duration="transitionDuration">
-    <div v-if="showDialog" class="app-dialog" :aria-hidden="!showDialog">
-      <div class="app-dialog__overlay" tabindex="-1" @click.self="closeDialog">
-        <div class="app-dialog__container" role="dialog">
-          <header class="app-dialog__header">
-            <h2 class="app-dialog__title">{{ title }}</h2>
-            <button
-              class="app-dialog__close"
-              aria-label="Close dialog"
-              @click="closeDialog"
-            ></button>
-          </header>
-          <main class="app-dialog__content">
-            <p>
-              <slot></slot>
-            </p>
-          </main>
-          <footer class="app-dialog__actions">
-            <slot name="actions"></slot>
-          </footer>
+    <Teleport to="#dialogs">
+      <div v-if="showDialog" class="app-dialog" :aria-hidden="!showDialog">
+        <div class="app-dialog__overlay" tabindex="-1" @click.self="closeDialog">
+          <div class="app-dialog__container" role="dialog">
+            <header class="app-dialog__header">
+              <h2 class="app-dialog__title">{{ title }}</h2>
+              <button
+                class="app-dialog__close"
+                aria-label="Close dialog"
+                @click="closeDialog"
+              ></button>
+            </header>
+            <main class="app-dialog__content">
+              <p>
+                <slot></slot>
+              </p>
+            </main>
+            <footer class="app-dialog__actions">
+              <slot name="actions"></slot>
+            </footer>
+          </div>
         </div>
       </div>
-    </div>
+    </Teleport>
   </Transition>
 </template>
 
@@ -40,8 +42,6 @@ function closeDialog() {
 
 <style lang="scss" scoped>
 .app-dialog {
-  z-index: 10;
-
   &__overlay {
     position: fixed;
     top: 0;
