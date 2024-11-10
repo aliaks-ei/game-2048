@@ -1,4 +1,6 @@
 import { computed, ref } from "vue";
+import { useGameStateStore } from "@/stores/gameState";
+
 import type { Cell, Tile } from "@/types";
 
 interface SetTileInCellPayload {
@@ -10,6 +12,7 @@ interface SetTileInCellPayload {
 const TILE_HIGHEST_VALUE = 2048;
 
 export function useTiles() {
+  const gameStateStore = useGameStateStore();
   const renderedTiles = ref<Tile[]>([]);
 
   const hasReachedHighestValue = computed(() => {
@@ -105,6 +108,19 @@ export function useTiles() {
     renderedTiles.value = tiles;
   }
 
+  function mergeTilesInGridCells(gridCells: Cell[]) {
+    gridCells
+      .filter((cell) => cell.tileToMerge)
+      .forEach((cell) => {
+        if (cell.tile) {
+          cell.tile.value *= 2;
+          gameStateStore.setScore(gameStateStore.score + cell.tile.value);
+        }
+
+        delete cell.tileToMerge;
+      });
+  }
+
   return {
     renderedTiles,
     hasReachedHighestValue,
@@ -113,5 +129,6 @@ export function useTiles() {
     canTileSlide,
     moveTiles,
     setRenderedTiles,
+    mergeTilesInGridCells,
   };
 }
