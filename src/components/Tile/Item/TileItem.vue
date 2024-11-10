@@ -1,13 +1,19 @@
 <template>
-  <li :style="{ '--col': tile.col, '--row': tile.row }" :data-id="tile.id" class="tile">
-    <div class="tile__inner" :class="`tile__inner--${tile.value}`">
+  <li
+    :style="{ '--col': tile.col, '--row': tile.row }"
+    :data-id="tile.id"
+    :class="{ 'tile--obstacle': tile.isObstacle }"
+    class="tile"
+  >
+    <div v-if="!tile.isObstacle" class="tile__inner" :class="`tile__inner--${tile.value}`">
       {{ tile.value }}
     </div>
+    <img v-else src="@/assets/icons/rock.svg" alt="obstacle" />
   </li>
 </template>
 
 <script setup lang="ts">
-import type { Tile } from '@/types';
+import type { Tile } from "@/types";
 
 defineProps<{ tile: Tile }>();
 </script>
@@ -35,25 +41,39 @@ $tile-colors: (
   transition-timing-function: cubic-bezier(0.39, 0.575, 0.565, 1);
   transition-property: transform, background-color;
   will-change: transform;
-  transform: translate(calc((var(--col) - 1) * (var(--tile-size) + var(--board-gap))),
-      calc((var(--row) - 1) * (var(--tile-size) + var(--board-gap))));
-}
+  transform: translate(
+    calc((var(--col) - 1) * (var(--tile-size) + var(--board-gap))),
+    calc((var(--row) - 1) * (var(--tile-size) + var(--board-gap)))
+  );
 
-.tile__inner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  font-weight: 600;
-  width: 100%;
-  height: 100%;
-  border-radius: var(--board-border-radius);
-  animation: appear 200ms cubic-bezier(0.39, 0.575, 0.565, 1);
-  box-shadow: 0.8px 1.6px 1.6px hsl(0deg 0% 0% / 0.3);
+  &__inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: min(var(--tile-size) / 4, 4vw);
+    font-weight: 600;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--board-border-radius);
+    animation: appear 200ms cubic-bezier(0.39, 0.575, 0.565, 1);
+    box-shadow: 0.8px 1.6px 1.6px hsl(0deg 0% 0% / 0.3);
 
-  @each $value, $color in $tile-colors {
-    &--#{$value} {
-      background-color: $color;
+    @each $value, $color in $tile-colors {
+      &--#{$value} {
+        background-color: $color;
+      }
+    }
+
+    &--8,
+    &--16,
+    &--32,
+    &--64,
+    &--128,
+    &--256,
+    &--512,
+    &--1024,
+    &--2048 {
+      color: var(--text-color-light);
     }
   }
 }

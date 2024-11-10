@@ -3,6 +3,7 @@ export interface Tile {
   value: number;
   col: number;
   row: number;
+  isObstacle?: boolean;
 }
 
 export interface Cell {

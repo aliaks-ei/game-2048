@@ -37,10 +37,10 @@ export function useGridCells() {
     return emptyCells[randomIndex];
   }
 
-  function resetGridCells(gridSize: number) {
-    gridCells.value = Array.from({ length: Math.pow(gridSize, 2) }, (_, index) => ({
-      col: (index % gridSize) + 1,
-      row: Math.floor(index / gridSize) + 1,
+  function resetGridCells(size: number) {
+    gridCells.value = Array.from({ length: Math.pow(size, 2) }, (_, index) => ({
+      col: (index % size) + 1,
+      row: Math.floor(index / size) + 1,
     }));
   }
 
