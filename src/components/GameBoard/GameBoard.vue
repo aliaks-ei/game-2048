@@ -7,7 +7,7 @@
     <game-board-controls @click:new-game="startGame"></game-board-controls>
 
     <!-- Board -->
-    <div class="game-container">
+    <div class="game-board-container">
       <grid-container :size="gridSize"></grid-container>
       <tile-container>
         <tile-item v-for="tile in renderedTiles" :key="tile.id" :tile="tile"></tile-item>
@@ -26,10 +26,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, toValue, nextTick, onBeforeUnmount, watch } from "vue";
+import { onMounted, onBeforeUnmount, watch } from "vue";
+import { storeToRefs } from "pinia";
 
-import AppButton from "@/components/AppButton/AppButton.vue";
-import AppDialog from "@/components/AppDialog/AppDialog.vue";
+import AppButton from "@/components/App/Button/AppButton.vue";
+import AppDialog from "@/components/App/Dialog/AppDialog.vue";
 import GridContainer from "@/components/GridContainer/GridContainer.vue";
 import TileContainer from "@/components/Tile/Container/TileContainer.vue";
 import TileItem from "@/components/Tile/Item/TileItem.vue";
@@ -39,112 +40,43 @@ import GameBoardControls from "@/components/GameBoard/Controls/GameBoardControls
 import { useGridCells } from "@/composables/useGridCells";
 import { useTiles } from "@/composables/useTiles";
 import { useGameStateStore } from "@/stores/gameState";
+import { useUserInput } from "@/composables/useUserInput";
+import { generateNumArray } from "@/utils";
 
-import type { Cell, Tile } from "@/types";
-import { storeToRefs } from "pinia";
-
-const { gridCells, gridCellsByDirection, getRandomEmptyGridCell, resetGridCells } = useGridCells();
 const gameStateStore = useGameStateStore();
-const {
-  renderedTiles,
-  hasReachedHighestValue,
-  setTileInCell,
-  canTileSlide,
-  moveTiles,
-  setRenderedTiles,
-  mergeTilesInGridCells,
-} = useTiles();
-const { canAcceptUserInput, score, bestScore, gameOverDialog, gridSize, numObstacles } =
-  storeToRefs(gameStateStore);
+const { resetGridCells } = useGridCells();
+const { renderedTiles, hasReachedHighestValue, addTileToCell, setRenderedTiles } = useTiles();
+const { score, bestScore, gameOverDialog, gridSize, numObstacles } = storeToRefs(gameStateStore);
 const { endGame, setCanAcceptUserInput, setScore, hideGameOverDialog } = gameStateStore;
-
-function addTileToCell({ isObstacle }: { isObstacle?: boolean } = {}) {
-  const cell = getRandomEmptyGridCell();
-
-  setTileInCell({ cell, tile: { value: isObstacle ? 0 : 2, isObstacle } });
-  setRenderedTiles([...renderedTiles.value, cell.tile!]);
-
-  return cell;
-}
-
-async function handleKeyupEvent(event: KeyboardEvent) {
-  if (!canAcceptUserInput) return;
-
-  const moveTilesIfPossible = async (gridCellsMatrix: Cell[][]) => {
-    if (!canTileSlide(gridCellsMatrix)) {
-      return false;
-    }
-
-    await moveTiles(gridCellsMatrix);
-    return true;
-  };
-
-  const currentActionData = gridCellsByDirection.value[event.key];
-
-  setCanAcceptUserInput(false);
-
-  if (currentActionData && (await moveTilesIfPossible(currentActionData))) {
-    mergeTilesInGridCells(toValue(gridCells));
-
-    const idsToRender = gridCells.value.reduce<Record<string, Tile>>((acc, cell) => {
-      if (cell.tile) {
-        acc[cell.tile.id] = cell.tile;
-      }
-
-      return acc;
-    }, {});
-
-    const updatedrenderedTiles = renderedTiles.value
-      .filter((tile) => Object.keys(idsToRender).includes(tile.id))
-      .map((tile) => idsToRender[tile.id]);
-
-    setRenderedTiles(updatedrenderedTiles);
-
-    const cell = addTileToCell();
-
-    if (Object.values(gridCellsByDirection.value).every((data) => !canTileSlide(data))) {
-      await nextTick();
-      document.querySelector(`[data-id="${cell.tile!.id}"]`)?.addEventListener(
-        "animationend",
-        () => {
-          document.removeEventListener("keyup", handleKeyupEvent);
-          endGame("lose");
-        },
-        { once: true },
-      );
-    }
-  }
-
-  setCanAcceptUserInput(true);
-}
+const { handleUserInput } = useUserInput();
 
 function startGame() {
+  // Reset game
   hideGameOverDialog();
   setScore(0);
   setRenderedTiles([]);
   resetGridCells(gridSize.value);
   addTileToCell();
+  setCanAcceptUserInput(true);
 
   // Add obstacles
-  Array.from({ length: numObstacles.value }).forEach(() => addTileToCell({ isObstacle: true }));
-
-  document.removeEventListener("keyup", handleKeyupEvent);
-  document.addEventListener("keyup", handleKeyupEvent);
+  generateNumArray(numObstacles.value).forEach(() => addTileToCell({ isObstacle: true }));
 }
 
 watch(hasReachedHighestValue, (current) => {
   if (current) {
-    document.removeEventListener("keyup", handleKeyupEvent);
+    setCanAcceptUserInput(false);
     endGame("win");
   }
 });
 
 onMounted(() => {
   startGame();
+  document.addEventListener("keyup", handleUserInput);
 });
 
 onBeforeUnmount(() => {
-  document.removeEventListener("keyup", handleKeyupEvent);
+  document.removeEventListener("keyup", handleUserInput);
 });
 </script>
 
@@ -169,7 +101,7 @@ onBeforeUnmount(() => {
   margin: 0 auto;
 }
 
-.game-container {
+.game-board-container {
   position: relative;
   padding: var(--board-gap);
   background-color: rgb(187 173 160);

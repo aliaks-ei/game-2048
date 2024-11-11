@@ -1,11 +1,11 @@
 <template>
   <Transition :duration="transitionDuration">
     <Teleport to="#dialogs">
-      <div v-if="showDialog" class="app-dialog" :aria-hidden="!showDialog">
+      <div v-if="showDialog" class="app-dialog" data-testid="app-dialog" :aria-hidden="!showDialog">
         <div class="app-dialog__overlay" tabindex="-1" @click.self="closeDialog">
-          <div class="app-dialog__container" role="dialog">
+          <div class="app-dialog__container" role="dialog" :aria-labelledby="dialogTitleId">
             <header class="app-dialog__header">
-              <h2 class="app-dialog__title">{{ title }}</h2>
+              <h2 :id="dialogTitleId" class="app-dialog__title">{{ title }}</h2>
               <button
                 class="app-dialog__close"
                 aria-label="Close dialog"
@@ -28,10 +28,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, useId, computed } from "vue";
 
 const transitionDuration = ref(300);
 const showDialog = defineModel<boolean>({ required: true });
+const dialogTitleId = computed(() => `dialog-title-${useId()}`);
 
 defineProps<{ title?: string }>();
 
@@ -48,7 +49,7 @@ function closeDialog() {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0 0 0 / 60%);
+    background-color: rgba(0 0 0 / 80%);
     display: flex;
     justify-content: center;
     align-items: center;

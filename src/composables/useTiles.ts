@@ -1,9 +1,10 @@
 import { computed, ref } from "vue";
 import { useGameStateStore } from "@/stores/gameState";
+import { useGridCells } from "@/composables/useGridCells";
 
 import type { Cell, Tile } from "@/types";
 
-interface SetTileInCellPayload {
+interface _SetTileInCellPayload {
   cell: Cell;
   tile: Partial<Tile>;
   isTileToMerge?: boolean;
@@ -11,21 +12,19 @@ interface SetTileInCellPayload {
 
 const TILE_HIGHEST_VALUE = 2048;
 
+// Shared state
+const renderedTiles = ref<Tile[]>([]);
+
 export function useTiles() {
   const gameStateStore = useGameStateStore();
-  const renderedTiles = ref<Tile[]>([]);
+  const { getRandomEmptyGridCell } = useGridCells();
 
   const hasReachedHighestValue = computed(() => {
     return Math.max(...renderedTiles.value.map((tile) => tile.value)) >= TILE_HIGHEST_VALUE;
   });
 
-  function canCellAcceptTile(cell: Cell, tile?: Tile) {
-    return (
-      !cell.tile || (!cell.tile.isObstacle && !cell.tileToMerge && cell.tile.value === tile?.value)
-    );
-  }
-
-  function setTileInCell({ cell, tile, isTileToMerge }: SetTileInCellPayload) {
+  // Private methods
+  function _setTileInCell({ cell, tile, isTileToMerge }: _SetTileInCellPayload) {
     cell[isTileToMerge ? "tileToMerge" : "tile"] = {
       value: tile.value ?? 2, // set default value to 2
       id: tile.id ?? crypto.randomUUID(),
@@ -35,18 +34,7 @@ export function useTiles() {
     };
   }
 
-  function canTileSlide(gridCellsMatrix: Cell[][]) {
-    return gridCellsMatrix.some((column) =>
-      column.some((cell, cellIndex) => {
-        const targetCell = column[cellIndex - 1];
-        const restrictedCell = !cellIndex || !cell.tile || cell.tile.isObstacle;
-
-        return restrictedCell ? false : canCellAcceptTile(targetCell, cell.tile);
-      }),
-    );
-  }
-
-  async function moveTiles(gridCellsMatrix: Cell[][]) {
+  async function _moveTiles(gridCellsMatrix: Cell[][]) {
     return Promise.all(
       gridCellsMatrix.flatMap((group) => {
         const promises: Promise<void>[] = [];
@@ -62,25 +50,23 @@ export function useTiles() {
           for (let j = i - 1; j >= 0; j--) {
             const targetCell = group[j];
 
-            if (!canCellAcceptTile(targetCell, currentCell.tile)) {
-              break;
-            }
+            if (!canCellAcceptTile(targetCell, currentCell.tile)) break;
 
             lastAvailableCell = targetCell;
           }
 
           if (lastAvailableCell) {
-            const elem = document.querySelector(`[data-id="${currentCell.tile.id}"]`);
+            const tileElem = getTileElemById(currentCell.tile.id);
 
-            if (elem) {
+            if (tileElem) {
               promises.push(
                 new Promise<void>((resolve) => {
-                  elem.addEventListener("transitionend", () => resolve(), { once: true });
+                  tileElem.addEventListener("transitionend", () => resolve(), { once: true });
                 }),
               );
             }
 
-            setTileInCell({
+            _setTileInCell({
               cell: lastAvailableCell,
               tile: currentCell.tile,
               isTileToMerge: !!lastAvailableCell.tile,
@@ -104,6 +90,27 @@ export function useTiles() {
     );
   }
 
+  function getTileElemById(id: string) {
+    return document.querySelector(`[data-tile-id="${id}"]`);
+  }
+
+  function canCellAcceptTile(cell: Cell, tile?: Tile) {
+    return (
+      !cell.tile || (!cell.tile.isObstacle && !cell.tileToMerge && cell.tile.value === tile?.value)
+    );
+  }
+
+  function canTileSlide(gridCellsMatrix: Cell[][]) {
+    return gridCellsMatrix.some((column) =>
+      column.some((cell, cellIndex) => {
+        const targetCell = column[cellIndex - 1];
+        const restrictedCell = !cellIndex || !cell.tile || cell.tile.isObstacle;
+
+        return restrictedCell ? false : canCellAcceptTile(targetCell, cell.tile);
+      }),
+    );
+  }
+
   function setRenderedTiles(tiles: Tile[]) {
     renderedTiles.value = tiles;
   }
@@ -121,14 +128,33 @@ export function useTiles() {
       });
   }
 
+  async function moveTilesIfPossible(gridCellsMatrix: Cell[][]) {
+    if (!canTileSlide(gridCellsMatrix)) {
+      return false;
+    }
+
+    await _moveTiles(gridCellsMatrix);
+    return true;
+  }
+
+  function addTileToCell({ isObstacle }: { isObstacle?: boolean } = {}) {
+    const cell = getRandomEmptyGridCell();
+
+    _setTileInCell({ cell, tile: { value: isObstacle ? 0 : 2, isObstacle } });
+    setRenderedTiles([...renderedTiles.value, cell.tile!]);
+
+    return cell;
+  }
+
   return {
     renderedTiles,
     hasReachedHighestValue,
+    addTileToCell,
     canCellAcceptTile,
-    setTileInCell,
     canTileSlide,
-    moveTiles,
+    moveTilesIfPossible,
     setRenderedTiles,
     mergeTilesInGridCells,
+    getTileElemById,
   };
 }

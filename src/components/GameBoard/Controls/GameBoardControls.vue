@@ -1,6 +1,6 @@
 <template>
   <div class="board-controls">
-    <p>Join the numbers and get to the <strong>2048 tile!</strong></p>
+    <p>Use arrow keys to join the numbers and get to the <strong>2048 tile!</strong></p>
 
     <!-- Actions -->
     <div class="board-controls__actions">
@@ -38,13 +38,14 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from "vue";
+import { storeToRefs } from "pinia";
 
-import AppButton from "@/components/AppButton/AppButton.vue";
-import AppDialog from "@/components/AppDialog/AppDialog.vue";
-import AppSelect from "@/components/AppSelect/AppSelect.vue";
+import AppButton from "@/components/App/Button/AppButton.vue";
+import AppDialog from "@/components/App/Dialog/AppDialog.vue";
+import AppSelect from "@/components/App/Select/AppSelect.vue";
 
 import { useGameStateStore } from "@/stores/gameState";
-import { storeToRefs } from "pinia";
+import { generateNumArray } from "@/utils";
 
 const emit = defineEmits(["click:new-game"]);
 
@@ -55,13 +56,17 @@ const showSettingsDialog = ref(false);
 const selectedGridSize = ref(gridSize.value);
 const selectedNumObstacles = ref(numObstacles.value);
 const availableGridSizes = ref(
-  Array.from({ length: 7 }, (_, i) => i + 2).map((size) => ({
-    label: `${size} x ${size}`,
-    value: size,
-  })),
+  generateNumArray(5).map((item) => {
+    const size = item + 4;
+
+    return {
+      label: `${size} x ${size}`,
+      value: size,
+    };
+  }),
 );
 const availableNumObstacles = computed(() =>
-  Array.from({ length: selectedGridSize.value }, (_, i) => i).map((item) => ({
+  generateNumArray(selectedGridSize.value).map((item) => ({
     label: String(item),
     value: item,
   })),
@@ -74,8 +79,8 @@ function openSettingsDialog() {
 }
 
 function handleSaveClick() {
-  setGridSize(Number(selectedGridSize.value));
-  setNumObstacles(Number(selectedNumObstacles.value));
+  setGridSize(selectedGridSize.value);
+  setNumObstacles(selectedNumObstacles.value);
   showSettingsDialog.value = false;
 
   emit("click:new-game");

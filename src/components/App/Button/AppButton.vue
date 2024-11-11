@@ -10,7 +10,7 @@ defineEmits(["click"]);
 </script>
 
 <style lang="scss" scoped>
-$button-color: rgb(143 122 102);
+$button-color: rgb(125 107 89);
 $button-color-active: rgb(116 99 82);
 
 .app-button {
