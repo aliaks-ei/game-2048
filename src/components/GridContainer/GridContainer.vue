@@ -1,6 +1,6 @@
 <template>
   <ul class="grid-container">
-    <li v-for="i in Math.pow(size, 2)" :key="i" class="grid-item"></li>
+    <li v-for="i in Math.pow(size, 2)" :key="i" class="grid-item" data-testid="grid-item"></li>
   </ul>
 </template>
 

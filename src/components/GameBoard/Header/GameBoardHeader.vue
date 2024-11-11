@@ -1,7 +1,12 @@
 <template>
   <div class="game-board-header">
     <h1 class="game-board-header__title">2048</h1>
-    <div v-for="{ label, value } in scores" :key="label" class="game-board-header__score">
+    <div
+      v-for="{ label, value } in scores"
+      :key="label"
+      class="game-board-header__score"
+      data-testid="score"
+    >
       <span class="game-board-header__score-label">{{ label }}</span>
       <strong>{{ value }}</strong>
     </div>
@@ -12,8 +17,8 @@
 import { computed } from "vue";
 
 interface Props {
-  currentScore: number;
-  bestScore: number;
+  currentScore?: number;
+  bestScore?: number;
 }
 
 interface Score {
@@ -24,8 +29,8 @@ interface Score {
 const props = defineProps<Props>();
 
 const scores = computed<Score[]>(() => [
-  { label: "Score", value: props.currentScore },
-  { label: "Best", value: props.bestScore },
+  { label: "Score", value: props.currentScore ?? 0 },
+  { label: "Best", value: props.bestScore ?? 0 },
 ]);
 </script>
 

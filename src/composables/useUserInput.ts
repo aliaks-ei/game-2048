@@ -28,7 +28,7 @@ export function useUserInput() {
     setCanAcceptUserInput(false);
 
     const currentActionData = gridCellsByDirection.value[event.key];
-    const hasTileMoved = currentActionData && await moveTilesIfPossible(currentActionData);
+    const hasTileMoved = currentActionData && (await moveTilesIfPossible(currentActionData));
 
     if (hasTileMoved) {
       mergeTilesInGridCells(gridCells.value);

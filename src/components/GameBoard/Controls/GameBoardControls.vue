@@ -99,7 +99,7 @@ watch(selectedGridSize, (current) => {
   justify-content: space-between;
   align-items: center;
   margin-block-end: 1.5rem;
-  gap: 0.5rem;
+  gap: 1rem;
   width: 100%;
 
   &__actions {
