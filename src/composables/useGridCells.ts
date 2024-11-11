@@ -1,10 +1,12 @@
 import { ref, computed } from "vue";
+import { generateNumArray } from "@/utils";
 
 import type { Cell, Tile } from "@/types";
 
-export function useGridCells() {
-  const gridCells = ref<Cell[]>([]);
+// Shared state
+const gridCells = ref<Cell[]>([]);
 
+export function useGridCells() {
   const _gridCellsByColumn = computed(() => {
     return gridCells.value.reduce<Cell[][]>((acc, cell) => {
       acc[cell.col - 1] = acc[cell.col - 1] || [];
@@ -38,7 +40,7 @@ export function useGridCells() {
   }
 
   function resetGridCells(size: number) {
-    gridCells.value = Array.from({ length: Math.pow(size, 2) }, (_, index) => ({
+    gridCells.value = generateNumArray(Math.pow(size, 2)).map((index) => ({
       col: (index % size) + 1,
       row: Math.floor(index / size) + 1,
     }));
@@ -58,7 +60,7 @@ export function useGridCells() {
     gridCells,
     gridCellsByDirection,
     getRandomEmptyGridCell,
-    resetGridCells,
     getTilesFromGridCells,
+    resetGridCells,
   };
 }

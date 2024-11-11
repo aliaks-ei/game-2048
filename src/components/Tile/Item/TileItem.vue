@@ -1,7 +1,7 @@
 <template>
   <li
     :style="{ '--col': tile.col, '--row': tile.row }"
-    :data-id="tile.id"
+    :data-tile-id="tile.id"
     :class="{ 'tile--obstacle': tile.isObstacle }"
     class="tile"
   >
@@ -74,6 +74,7 @@ $tile-colors: (
     &--1024,
     &--2048 {
       color: var(--text-color-light);
+      text-shadow: 0 1px 1px rgba(0 0 0 / 30%);
     }
   }
 }
