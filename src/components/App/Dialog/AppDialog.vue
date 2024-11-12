@@ -1,9 +1,14 @@
 <template>
   <Transition :duration="transitionDuration">
     <Teleport to="#dialogs">
-      <div v-if="showDialog" class="app-dialog" data-testid="app-dialog" :aria-hidden="!showDialog">
+      <div v-if="showDialog" class="app-dialog" :aria-hidden="!showDialog">
         <div class="app-dialog__overlay" tabindex="-1" @click.self="closeDialog">
-          <div class="app-dialog__container" role="dialog" :aria-labelledby="dialogTitleId">
+          <div
+            class="app-dialog__container"
+            role="dialog"
+            data-testid="app-dialog"
+            :aria-labelledby="dialogTitleId"
+          >
             <header class="app-dialog__header">
               <h2 :id="dialogTitleId" class="app-dialog__title">{{ title }}</h2>
               <button

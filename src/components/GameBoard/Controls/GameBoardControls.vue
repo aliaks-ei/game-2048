@@ -26,17 +26,25 @@
       <form>
         <label class="board-controls__settings-item">
           <span>Grid size</span>
-          <app-select v-model="selectedGridSize" :options="availableGridSizes"></app-select>
+          <app-select
+            v-model="selectedGridSize"
+            data-testid="grid-size-setting"
+            :options="availableGridSizes"
+          ></app-select>
         </label>
         <label class="board-controls__settings-item">
           <span>Obstacles (max: grid size - 1)</span>
-          <app-select v-model="selectedNumObstacles" :options="availableNumObstacles"></app-select>
+          <app-select
+            v-model="selectedNumObstacles"
+            data-testid="obstacles-setting"
+            :options="availableNumObstacles"
+          ></app-select>
         </label>
       </form>
       <template #actions>
-        <app-button @click="showSettingsDialog = false" data-testid="close-settings" outline
-          >Cancel</app-button
-        >
+        <app-button @click="showSettingsDialog = false" data-testid="close-settings" outline>
+          Cancel
+        </app-button>
         <app-button data-testid="save-settings" @click="handleSaveClick">Save & Restart</app-button>
       </template>
     </app-dialog>
