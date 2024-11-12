@@ -4,12 +4,17 @@
 
     <!-- Actions -->
     <div class="board-controls__actions">
-      <app-button class="board-controls__action" @click="$emit('click:new-game')">
+      <app-button
+        class="board-controls__action"
+        data-testid="new-game"
+        @click="$emit('click:new-game')"
+      >
         New Game
       </app-button>
       <app-button
         class="board-controls__action board-controls__action--settings"
         aria-label="Settings"
+        data-testid="open-settings"
         @click="openSettingsDialog"
       >
         &#9881;
@@ -29,8 +34,10 @@
         </label>
       </form>
       <template #actions>
-        <app-button @click="showSettingsDialog = false" outline>Cancel</app-button>
-        <app-button @click="handleSaveClick">Save & Restart</app-button>
+        <app-button @click="showSettingsDialog = false" data-testid="close-settings" outline
+          >Cancel</app-button
+        >
+        <app-button data-testid="save-settings" @click="handleSaveClick">Save & Restart</app-button>
       </template>
     </app-dialog>
   </div>
@@ -99,7 +106,7 @@ watch(selectedGridSize, (current) => {
   justify-content: space-between;
   align-items: center;
   margin-block-end: 1.5rem;
-  gap: 0.5rem;
+  gap: 1rem;
   width: 100%;
 
   &__actions {
