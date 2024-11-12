@@ -10,17 +10,13 @@ type GameOverDialogContent = {
 const GAME_OVER_DIALOG_CONTENT: Record<GameOverScenario, GameOverDialogContent> = {
   win: {
     title: "Congratulations!",
-    message: `
-      You've reached the 2048 tile and won the game!
-      Do you want to keep going and aim for an even higher score?
-    `,
+    message:
+      "You've reached the 2048 tile and won the game! Do you want to keep going and aim for an even higher score?",
   },
   lose: {
     title: "Game Over",
-    message: `
-      You've reached a full board with no possible moves left!
-      Would you like to try again and beat your highest score?
-    `,
+    message:
+      "You've reached a full board with no possible moves left! Would you like to try again and beat your highest score?",
   },
 };
 

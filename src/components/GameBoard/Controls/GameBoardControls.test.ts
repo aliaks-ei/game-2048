@@ -14,7 +14,9 @@ const renderComponent = () => {
         },
       },
     },
-  }) as VueWrapper<ComponentPublicInstance & { showSettingsDialog: boolean, selectedNumObstacles: number }>;
+  }) as VueWrapper<
+    ComponentPublicInstance & { showSettingsDialog: boolean; selectedNumObstacles: number }
+  >;
 };
 
 describe("GameBoardControls", () => {
