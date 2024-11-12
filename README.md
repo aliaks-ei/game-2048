@@ -1,18 +1,8 @@
-# game-2048
+# 2048 game
 
-This template should help get you started developing with Vue 3 in Vite.
-
-## Recommended IDE Setup
-
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
-
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
+[![Unit tests](https://github.com/aliaks-ei/game-2048/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/aliaks-ei/game-2048/actions/workflows/unit-tests.yml)
+[![E2E tests](https://github.com/aliaks-ei/game-2048/actions/workflows/e2e-tests.yml/badge.svg)](https://github.com/aliaks-ei/game-2048/actions/workflows/e2e-tests.yml)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/c08b8cee-71fd-4c1a-917d-889238349fd0/deploy-status)](https://app.netlify.com/sites/game-2048-aliaksei/deploys)
 
 ## Project Setup
 
