@@ -1,6 +1,6 @@
-import { setActivePinia, createPinia } from "pinia";
-import { useGridCells } from "./useGridCells";
-import { useTiles } from "./useTiles";
+import { setActivePinia, createPinia, storeToRefs } from "pinia";
+import { useGridCellsStore } from "./gridCells";
+import { useTilesStore } from "./tiles";
 
 const mockCell = { col: 1, row: 1 };
 const mockTile = { value: 2, col: 2, row: 1, id: "id-1" };
@@ -13,11 +13,11 @@ vi.mock("@/stores/gameState", () => ({
   })),
 }));
 
-describe("useTiles", () => {
+describe("useTilesStore", () => {
   beforeEach(() => {
-    const { setRenderedTiles } = useTiles();
-
     setActivePinia(createPinia());
+
+    const { setRenderedTiles } = useTilesStore();
     setRenderedTiles([]);
 
     vi.clearAllMocks();
@@ -25,7 +25,7 @@ describe("useTiles", () => {
 
   describe("renderedTiles", () => {
     test("should be initialized with empty array", () => {
-      const { renderedTiles } = useTiles();
+      const { renderedTiles } = storeToRefs(useTilesStore());
 
       expect(renderedTiles.value).toHaveLength(0);
     });
@@ -33,7 +33,7 @@ describe("useTiles", () => {
 
   describe("getTileElemById", () => {
     test("should return tile element by id", () => {
-      const { getTileElemById } = useTiles();
+      const { getTileElemById } = useTilesStore();
 
       const tileElem = document.createElement("div");
       tileElem.setAttribute("data-tile-id", "test-id");
@@ -46,7 +46,7 @@ describe("useTiles", () => {
     });
 
     test("should return null if tile element not found", () => {
-      const { getTileElemById } = useTiles();
+      const { getTileElemById } = useTilesStore();
 
       expect(getTileElemById("test-id")).toBeNull();
     });
@@ -54,19 +54,19 @@ describe("useTiles", () => {
 
   describe("canCellAcceptTile", () => {
     test("should return true if cell has no tile", () => {
-      const { canCellAcceptTile } = useTiles();
+      const { canCellAcceptTile } = useTilesStore();
 
       expect(canCellAcceptTile(mockCell, mockTile)).toBe(true);
     });
 
     test("should return false if cell has tile", () => {
-      const { canCellAcceptTile } = useTiles();
+      const { canCellAcceptTile } = useTilesStore();
 
       expect(canCellAcceptTile({ ...mockCell, tile: mockTile })).toBe(false);
     });
 
     test("should return false if tile in cell is obstacle", () => {
-      const { canCellAcceptTile } = useTiles();
+      const { canCellAcceptTile } = useTilesStore();
 
       expect(canCellAcceptTile({ ...mockCell, tile: { ...mockTile, isObstacle: true } })).toBe(
         false,
@@ -74,7 +74,7 @@ describe("useTiles", () => {
     });
 
     test("should return false if cell has tile to merge", () => {
-      const { canCellAcceptTile } = useTiles();
+      const { canCellAcceptTile } = useTilesStore();
 
       expect(
         canCellAcceptTile({ ...mockCell, tile: { ...mockTile }, tileToMerge: mockTile }, mockTile),
@@ -82,7 +82,7 @@ describe("useTiles", () => {
     });
 
     test("should return false if tile in cell has different value", () => {
-      const { canCellAcceptTile } = useTiles();
+      const { canCellAcceptTile } = useTilesStore();
 
       expect(canCellAcceptTile({ ...mockCell, tile: { ...mockTile, value: 3 } }, mockTile)).toBe(
         false,
@@ -90,7 +90,7 @@ describe("useTiles", () => {
     });
 
     test("should return true if tile in cell has same value", () => {
-      const { canCellAcceptTile } = useTiles();
+      const { canCellAcceptTile } = useTilesStore();
 
       expect(canCellAcceptTile({ ...mockCell, tile: { ...mockTile, value: 2 } }, mockTile)).toBe(
         true,
@@ -100,7 +100,7 @@ describe("useTiles", () => {
 
   describe("canTileSlide", () => {
     test("should return true if tile can slide", () => {
-      const { canTileSlide } = useTiles();
+      const { canTileSlide } = useTilesStore();
       const mockCellWithTile = { ...mockCell, tile: mockTile };
 
       expect(
@@ -112,7 +112,7 @@ describe("useTiles", () => {
     });
 
     test("should return false if tile cannot slide", () => {
-      const { canTileSlide } = useTiles();
+      const { canTileSlide } = useTilesStore();
 
       expect(canTileSlide([[mockCell, mockCell], [mockCell]])).toBe(false);
     });
@@ -120,7 +120,8 @@ describe("useTiles", () => {
 
   describe("setRenderedTiles", () => {
     test("should set rendered tiles", () => {
-      const { setRenderedTiles, renderedTiles } = useTiles();
+      const { renderedTiles } = storeToRefs(useTilesStore());
+      const { setRenderedTiles } = useTilesStore();
 
       setRenderedTiles([mockTile]);
 
@@ -128,7 +129,8 @@ describe("useTiles", () => {
     });
 
     test("should update rendered tiles", () => {
-      const { setRenderedTiles, renderedTiles } = useTiles();
+      const { renderedTiles } = storeToRefs(useTilesStore());
+      const { setRenderedTiles } = useTilesStore();
 
       setRenderedTiles([mockTile]);
       setRenderedTiles([mockTile, mockTile]); // Update rendered tiles
@@ -139,7 +141,7 @@ describe("useTiles", () => {
 
   describe("mergeTilesInGridCells", () => {
     test("should merge tiles in grid cells", () => {
-      const { mergeTilesInGridCells } = useTiles();
+      const { mergeTilesInGridCells } = useTilesStore();
 
       const gridCells = [
         { ...mockCell, tile: { ...mockTile }, tileToMerge: { ...mockTile } },
@@ -156,7 +158,7 @@ describe("useTiles", () => {
     });
 
     test("should not merge tiles in grid cells if no tiles to merge", () => {
-      const { mergeTilesInGridCells } = useTiles();
+      const { mergeTilesInGridCells } = useTilesStore();
 
       const gridCells = [{ ...mockCell, tile: { ...mockTile } }];
 
@@ -169,7 +171,7 @@ describe("useTiles", () => {
 
   describe("moveTilesIfPossible", () => {
     test("should move tiles if possible", async () => {
-      const { moveTilesIfPossible } = useTiles();
+      const { moveTilesIfPossible } = useTilesStore();
 
       const gridCellsMatrix = [
         [
@@ -186,7 +188,7 @@ describe("useTiles", () => {
     });
 
     test("should not move tiles if not possible", async () => {
-      const { moveTilesIfPossible } = useTiles();
+      const { moveTilesIfPossible } = useTilesStore();
 
       const gridCellsMatrix = [
         [
@@ -205,19 +207,21 @@ describe("useTiles", () => {
 
   describe("addTileToCell", () => {
     beforeEach(() => {
-      const { resetGridCells } = useGridCells();
+      const { resetGridCells } = useGridCellsStore();
       resetGridCells(4);
     });
 
     test("should add tile to cell", () => {
-      const { addTileToCell, renderedTiles } = useTiles();
+      const { renderedTiles } = storeToRefs(useTilesStore());
+      const { addTileToCell } = useTilesStore();
       const cell = addTileToCell();
 
       expect(cell.tile).toEqual(renderedTiles.value[0]);
     });
 
     test("should add obstacle tile to cell", () => {
-      const { addTileToCell, renderedTiles } = useTiles();
+      const { renderedTiles } = storeToRefs(useTilesStore());
+      const { addTileToCell } = useTilesStore();
       const cell = addTileToCell({ isObstacle: true });
 
       expect(cell.tile).toEqual(renderedTiles.value[0]);

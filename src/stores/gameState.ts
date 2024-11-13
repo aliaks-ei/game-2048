@@ -88,7 +88,7 @@ export const useGameStateStore = defineStore(
   {
     persist: {
       storage: localStorage,
-      pick: ["gridSize", "numObstacles", "bestScore"],
+      pick: ["gridSize", "numObstacles", "bestScore", "score"],
     },
   },
 );

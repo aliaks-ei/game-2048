@@ -37,17 +37,17 @@ import TileItem from "@/components/Tile/Item/TileItem.vue";
 import GameBoardHeader from "@/components/GameBoard/Header/GameBoardHeader.vue";
 import GameBoardControls from "@/components/GameBoard/Controls/GameBoardControls.vue";
 
-import { useGridCells } from "@/composables/useGridCells";
-import { useTiles } from "@/composables/useTiles";
+import { useGridCellsStore } from "@/stores/gridCells";
+import { useTilesStore } from "@/stores/tiles";
 import { useGameStateStore } from "@/stores/gameState";
 import { useUserInput } from "@/composables/useUserInput";
 import { generateNumArray } from "@/utils";
 
-const gameStateStore = useGameStateStore();
-const { resetGridCells } = useGridCells();
-const { renderedTiles, hasReachedHighestValue, addTileToCell, setRenderedTiles } = useTiles();
-const { score, bestScore, gameOverDialog, gridSize, numObstacles } = storeToRefs(gameStateStore);
-const { endGame, setCanAcceptUserInput, setScore, hideGameOverDialog } = gameStateStore;
+const { resetGridCells } = useGridCellsStore();
+const { renderedTiles, hasReachedHighestValue } = storeToRefs(useTilesStore());
+const { addTileToCell, setRenderedTiles } = useTilesStore();
+const { score, bestScore, gameOverDialog, gridSize, numObstacles } = storeToRefs(useGameStateStore());
+const { endGame, setCanAcceptUserInput, setScore, hideGameOverDialog } = useGameStateStore();
 const { handleUserInput } = useUserInput();
 
 function startGame() {

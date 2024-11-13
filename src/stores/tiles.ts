@@ -1,6 +1,8 @@
+import { defineStore } from "pinia";
 import { computed, ref } from "vue";
+
 import { useGameStateStore } from "@/stores/gameState";
-import { useGridCells } from "@/composables/useGridCells";
+import { useGridCellsStore } from "@/stores/gridCells";
 
 import type { Cell, Tile } from "@/types";
 
@@ -12,12 +14,8 @@ interface _SetTileInCellPayload {
 
 const TILE_HIGHEST_VALUE = 2048;
 
-// Shared state
-const renderedTiles = ref<Tile[]>([]);
-
-export function useTiles() {
-  const gameStateStore = useGameStateStore();
-  const { getRandomEmptyGridCell } = useGridCells();
+export const useTilesStore = defineStore("tiles", () => {
+  const renderedTiles = ref<Tile[]>([]);
 
   const hasReachedHighestValue = computed(() => {
     return Math.max(...renderedTiles.value.map((tile) => tile.value)) >= TILE_HIGHEST_VALUE;
@@ -116,6 +114,8 @@ export function useTiles() {
   }
 
   function mergeTilesInGridCells(gridCells: Cell[]) {
+    const gameStateStore = useGameStateStore();
+
     gridCells
       .filter((cell) => cell.tileToMerge)
       .forEach((cell) => {
@@ -138,7 +138,8 @@ export function useTiles() {
   }
 
   function addTileToCell({ isObstacle }: { isObstacle?: boolean } = {}) {
-    const cell = getRandomEmptyGridCell();
+    const gridCellsStore = useGridCellsStore();
+    const cell = gridCellsStore.getRandomEmptyGridCell();
 
     _setTileInCell({ cell, tile: { value: isObstacle ? 0 : 2, isObstacle } });
     setRenderedTiles([...renderedTiles.value, cell.tile!]);
@@ -157,4 +158,4 @@ export function useTiles() {
     mergeTilesInGridCells,
     getTileElemById,
   };
-}
+});
