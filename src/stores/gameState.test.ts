@@ -1,4 +1,4 @@
-import { setActivePinia, createPinia } from "pinia";
+import { setActivePinia, createPinia, storeToRefs } from "pinia";
 import { useGameStateStore } from "./gameState";
 
 describe("gameState", () => {
@@ -9,24 +9,26 @@ describe("gameState", () => {
   describe("endGame", () => {
     test("ends game with Win scenario", () => {
       const { endGame } = useGameStateStore();
+      const { gameOverDialog } = storeToRefs(useGameStateStore());
 
       endGame("win");
 
-      expect(useGameStateStore().gameOverDialog.show).toBe(true);
-      expect(useGameStateStore().gameOverDialog.title).toBe("Congratulations!");
-      expect(useGameStateStore().gameOverDialog.message).toBe(
+      expect(gameOverDialog.value.show).toBe(true);
+      expect(gameOverDialog.value.title).toBe("Congratulations!");
+      expect(gameOverDialog.value.message).toBe(
         "You've reached the 2048 tile and won the game! Do you want to keep going and aim for an even higher score?",
       );
     });
 
     test("ends game with Lose scenario", () => {
       const { endGame } = useGameStateStore();
+      const { gameOverDialog } = storeToRefs(useGameStateStore());
 
       endGame("lose");
 
-      expect(useGameStateStore().gameOverDialog.show).toBe(true);
-      expect(useGameStateStore().gameOverDialog.title).toBe("Game Over");
-      expect(useGameStateStore().gameOverDialog.message).toBe(
+      expect(gameOverDialog.value.show).toBe(true);
+      expect(gameOverDialog.value.title).toBe("Game Over");
+      expect(gameOverDialog.value.message).toBe(
         "You've reached a full board with no possible moves left! Would you like to try again and beat your highest score?",
       );
     });

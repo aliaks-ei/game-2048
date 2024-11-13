@@ -1,9 +1,14 @@
-import { useGridCells } from "./useGridCells";
+import { createPinia, setActivePinia, storeToRefs } from "pinia";
+import { useGridCellsStore } from "./gridCells";
 
-describe("useGridCells", () => {
+describe("useGridCellsStore", () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+  });
+
   describe("gridCells", () => {
     test("should generate empty grid cells", () => {
-      const { gridCells } = useGridCells();
+      const { gridCells } = storeToRefs(useGridCellsStore());
 
       expect(gridCells.value).toHaveLength(0);
     });
@@ -11,18 +16,18 @@ describe("useGridCells", () => {
 
   describe("gridCellsByDirection", () => {
     beforeEach(() => {
-      const { resetGridCells } = useGridCells();
+      const { resetGridCells } = useGridCellsStore();
 
       resetGridCells(2);
     });
     test("should generate grid cells by direction", () => {
-      const { gridCellsByDirection } = useGridCells();
+      const { gridCellsByDirection } = storeToRefs(useGridCellsStore());
 
       expect(Object.keys(gridCellsByDirection.value)).toHaveLength(4);
     });
 
     test("should have correct values order for ArrowLeft", () => {
-      const { gridCellsByDirection } = useGridCells();
+      const { gridCellsByDirection } = storeToRefs(useGridCellsStore());
 
       expect(gridCellsByDirection.value.ArrowLeft).toEqual([
         [
@@ -37,7 +42,7 @@ describe("useGridCells", () => {
     });
 
     test("should have correct values order for ArrowRight", () => {
-      const { gridCellsByDirection } = useGridCells();
+      const { gridCellsByDirection } = storeToRefs(useGridCellsStore());
 
       expect(gridCellsByDirection.value.ArrowRight).toEqual([
         [
@@ -52,7 +57,7 @@ describe("useGridCells", () => {
     });
 
     test("should have correct values order for ArrowUp", () => {
-      const { gridCellsByDirection } = useGridCells();
+      const { gridCellsByDirection } = storeToRefs(useGridCellsStore());
 
       expect(gridCellsByDirection.value.ArrowUp).toEqual([
         [
@@ -67,7 +72,7 @@ describe("useGridCells", () => {
     });
 
     test("should have correct values order for ArrowDown", () => {
-      const { gridCellsByDirection } = useGridCells();
+      const { gridCellsByDirection } = storeToRefs(useGridCellsStore());
 
       expect(gridCellsByDirection.value.ArrowDown).toEqual([
         [
@@ -84,7 +89,9 @@ describe("useGridCells", () => {
 
   describe("getRandomEmptyGridCell", () => {
     test("should return random empty grid cell", () => {
-      const { getRandomEmptyGridCell, gridCells, resetGridCells } = useGridCells();
+      const { gridCells } = storeToRefs(useGridCellsStore());
+      const { getRandomEmptyGridCell, resetGridCells } = useGridCellsStore();
+
       resetGridCells(2);
 
       const cell = getRandomEmptyGridCell();
@@ -97,7 +104,7 @@ describe("useGridCells", () => {
 
   describe("getTilesFromGridCells", () => {
     test("should return tiles from grid cells", () => {
-      const { getTilesFromGridCells, resetGridCells } = useGridCells();
+      const { getTilesFromGridCells, resetGridCells } = useGridCellsStore();
       resetGridCells(2);
 
       const tiles = getTilesFromGridCells();
@@ -108,7 +115,8 @@ describe("useGridCells", () => {
 
   describe("resetGridCells", () => {
     test("should reset grid cells", () => {
-      const { resetGridCells, gridCells } = useGridCells();
+      const { gridCells } = storeToRefs(useGridCellsStore());
+      const { resetGridCells } = useGridCellsStore();
 
       resetGridCells(2);
 
@@ -116,7 +124,8 @@ describe("useGridCells", () => {
     });
 
     test("should overwrite grid cells", () => {
-      const { resetGridCells, gridCells } = useGridCells();
+      const { gridCells } = storeToRefs(useGridCellsStore());
+      const { resetGridCells } = useGridCellsStore();
 
       resetGridCells(2);
       resetGridCells(3);

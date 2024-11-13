@@ -1,26 +1,25 @@
 import { nextTick } from "vue";
 import { storeToRefs } from "pinia";
 
-import { useGridCells } from "@/composables/useGridCells";
-import { useTiles } from "@/composables/useTiles";
+import { useGridCellsStore } from "@/stores/gridCells";
+import { useTilesStore } from "@/stores/tiles";
 import { useGameStateStore } from "@/stores/gameState";
 
 import type { Tile } from "@/types";
 
 export function useUserInput() {
-  const gameStateStore = useGameStateStore();
-  const { gridCells, gridCellsByDirection } = useGridCells();
+  const { canAcceptUserInput } = storeToRefs(useGameStateStore());
+  const { endGame, setCanAcceptUserInput } = useGameStateStore();
+  const { gridCells, gridCellsByDirection } = storeToRefs(useGridCellsStore());
+  const { renderedTiles } = storeToRefs(useTilesStore());
   const {
-    renderedTiles,
     addTileToCell,
     canTileSlide,
     moveTilesIfPossible,
     setRenderedTiles,
     mergeTilesInGridCells,
     getTileElemById,
-  } = useTiles();
-  const { canAcceptUserInput } = storeToRefs(gameStateStore);
-  const { endGame, setCanAcceptUserInput } = gameStateStore;
+  } = useTilesStore();
 
   async function handleUserInput(event: KeyboardEvent) {
     if (!canAcceptUserInput.value) return;
