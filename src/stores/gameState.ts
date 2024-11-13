@@ -23,7 +23,7 @@ const GAME_OVER_DIALOG_CONTENT: Record<GameOverScenario, GameOverDialogContent> 
 export const useGameStateStore = defineStore(
   "gameState",
   () => {
-    const gridSize = ref(6);
+    const gridSize = ref(4);
     const numObstacles = ref(0);
     const score = ref(0);
     const bestScore = ref(0);

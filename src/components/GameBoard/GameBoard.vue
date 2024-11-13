@@ -4,7 +4,7 @@
     <game-board-header :current-score="score" :best-score="bestScore"></game-board-header>
 
     <!-- Controls -->
-    <game-board-controls @click:new-game="startGame"></game-board-controls>
+    <game-board-controls @click:new-game="handleNewGameClick"></game-board-controls>
 
     <!-- Board -->
     <div class="game-board-container">
@@ -18,8 +18,9 @@
     <app-dialog v-model="gameOverDialog.show" :title="gameOverDialog.title">
       {{ gameOverDialog.message }}
       <template #actions>
-        <app-button @click="gameOverDialog.show = false" outline>Cancel</app-button>
-        <app-button @click="startGame">New Game</app-button>
+        <!-- TODO: Update text and order for game over scenario -->
+        <app-button @click="handleNewGameClick" outline>New game</app-button>
+        <app-button @click="gameOverDialog.show = false">Continue playing</app-button>
       </template>
     </app-dialog>
   </div>
@@ -43,35 +44,57 @@ import { useGameStateStore } from "@/stores/gameState";
 import { useUserInput } from "@/composables/useUserInput";
 import { generateNumArray } from "@/utils";
 
+const { gridCells } = storeToRefs(useGridCellsStore());
 const { resetGridCells } = useGridCellsStore();
 const { renderedTiles, hasReachedHighestValue } = storeToRefs(useTilesStore());
 const { addTileToCell, setRenderedTiles } = useTilesStore();
-const { score, bestScore, gameOverDialog, gridSize, numObstacles } = storeToRefs(useGameStateStore());
+const { score, bestScore, gameOverDialog, gridSize, numObstacles } =
+  storeToRefs(useGameStateStore());
 const { endGame, setCanAcceptUserInput, setScore, hideGameOverDialog } = useGameStateStore();
 const { handleUserInput } = useUserInput();
 
-function startGame() {
-  // Reset game
-  hideGameOverDialog();
+function startNewGame() {
   setScore(0);
-  setRenderedTiles([]);
   resetGridCells(gridSize.value);
   addTileToCell();
-  setCanAcceptUserInput(true);
 
   // Add obstacles
   generateNumArray(numObstacles.value).forEach(() => addTileToCell({ isObstacle: true }));
 }
 
+function handleNewGameClick() {
+  // Reset game
+  hideGameOverDialog();
+  setRenderedTiles([]);
+
+  startNewGame();
+}
+
 watch(hasReachedHighestValue, (current) => {
   if (current) {
-    setCanAcceptUserInput(false);
     endGame("win");
   }
 });
 
+watch(
+  () => gameOverDialog.value.show,
+  (current) => {
+    setCanAcceptUserInput(!current);
+  },
+);
+
 onMounted(() => {
-  startGame();
+  const canContinueSavedGame =
+    renderedTiles.value.length - numObstacles.value > 1 &&
+    renderedTiles.value.length < gridCells.value.length;
+
+  if (!canContinueSavedGame) {
+    startNewGame();
+  }
+
+  setRenderedTiles(gridCells.value.filter((cell) => cell.tile).map((cell) => cell.tile!));
+  setCanAcceptUserInput(true);
+
   document.addEventListener("keyup", handleUserInput);
 });
 

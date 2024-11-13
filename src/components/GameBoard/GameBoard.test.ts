@@ -6,6 +6,8 @@ import GameBoard from "./GameBoard.vue";
 vi.spyOn(document, "addEventListener");
 vi.spyOn(document, "removeEventListener");
 
+// TODO: add more tests (unit)
+// TODO: add more tests (e2e)
 describe("GameBoard", () => {
   beforeEach(() => {
     setActivePinia(createPinia());
