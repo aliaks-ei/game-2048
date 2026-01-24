@@ -65,4 +65,52 @@ const scores = computed<Score[]>(() => [
     }
   }
 }
+
+/* Mobile-specific header styles */
+@media (max-width: 768px) {
+  .game-board-header {
+    gap: 0.375rem;
+
+    &__title {
+      font-size: 3rem;
+    }
+
+    &__score {
+      padding: 0.25rem 0.75rem;
+
+      &-label {
+        font-size: 0.7rem;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .game-board-header {
+    &__title {
+      font-size: 2.5rem;
+    }
+
+    &__score {
+      padding: 0.25rem 0.625rem;
+      min-width: 4rem;
+
+      &-label {
+        font-size: 0.65rem;
+      }
+
+      strong {
+        font-size: 0.9rem;
+      }
+    }
+  }
+}
+
+@media (max-width: 360px) {
+  .game-board-header {
+    &__title {
+      font-size: 2rem;
+    }
+  }
+}
 </style>

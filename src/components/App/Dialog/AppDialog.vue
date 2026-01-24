@@ -88,6 +88,11 @@ function closeDialog() {
     background: transparent;
     border: 0;
     cursor: pointer;
+    /* Touch-friendly close button */
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 
     &:before {
       color: var(--text-color-dark);
@@ -107,6 +112,66 @@ function closeDialog() {
     gap: 0.5rem;
   }
 }
+
+/* Mobile-specific dialog styles */
+@media (max-width: 768px) {
+  .app-dialog {
+    &__overlay {
+      padding: 1rem;
+    }
+
+    &__container {
+      padding: 1.25rem;
+      max-width: 100%;
+      width: 100%;
+    }
+
+    &__content {
+      margin-block: 1.5rem;
+    }
+
+    &__actions {
+      flex-wrap: wrap;
+      gap: 0.75rem;
+
+      > * {
+        flex: 1 1 auto;
+        min-width: calc(50% - 0.375rem);
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .app-dialog {
+    &__overlay {
+      padding: 0.75rem;
+    }
+
+    &__container {
+      padding: 1rem;
+    }
+
+    &__title {
+      font-size: 1.25rem;
+    }
+
+    &__content {
+      margin-block: 1.25rem;
+      font-size: 0.95rem;
+    }
+
+    &__actions {
+      flex-direction: column;
+
+      > * {
+        width: 100%;
+        min-width: 100%;
+      }
+    }
+  }
+}
+
 
 .v-enter-active .app-dialog__overlay,
 .v-leave-active .app-dialog__overlay {

@@ -18,16 +18,30 @@ main,
 
 html {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  /* Prevent text size adjustment on orientation change for mobile */
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
   background-color: #faf8ef;
   color: var(--text-color-dark);
+  /* Prevent pull-to-refresh on mobile browsers */
+  overscroll-behavior-y: contain;
+  /* Prevent text selection during touch interactions */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  /* Disable tap highlight on mobile */
+  -webkit-tap-highlight-color: transparent;
 }
 
 main {
   padding-inline: 1rem;
   padding-block-end: 1rem;
+  /* Enable GPU acceleration for smoother animations */
+  transform: translateZ(0);
 }
 
 ul {
@@ -46,8 +60,53 @@ p {
   z-index: 10;
 }
 
+/* Tablet and smaller devices */
 @media (max-width: 768px) {
   html {
     font-size: 14px;
+    /* Fix viewport height on mobile browsers (accounts for address bar) */
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height */
+  }
+
+  body {
+    /* Prevent body from bouncing/overscrolling */
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  main {
+    /* Full-screen mobile experience with safe areas */
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    /* Support notched devices */
+    padding-top: env(safe-area-inset-top);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Mobile devices */
+@media (max-width: 480px) {
+  html {
+    font-size: 13px;
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 360px) {
+  html {
+    font-size: 12px;
+  }
+}
+
+/* Landscape orientation adjustments */
+@media (max-height: 600px) and (orientation: landscape) {
+  html {
+    font-size: 11px;
   }
 }
