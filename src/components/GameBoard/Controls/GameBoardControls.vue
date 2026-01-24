@@ -1,6 +1,10 @@
 <template>
   <div class="board-controls">
-    <p>Use arrow keys to join the numbers and get to the <strong>2048 tile!</strong></p>
+    <p class="board-controls__instructions">
+      <span class="board-controls__instructions--desktop">Use arrow keys</span>
+      <span class="board-controls__instructions--mobile">Swipe</span>
+      to join the numbers and get to the <strong>2048 tile!</strong>
+    </p>
 
     <!-- Actions -->
     <div class="board-controls__actions">
@@ -117,6 +121,18 @@ watch(selectedGridSize, (current) => {
   gap: 1rem;
   width: 100%;
 
+  &__instructions {
+    margin: 0;
+
+    &--desktop {
+      display: inline;
+    }
+
+    &--mobile {
+      display: none;
+    }
+  }
+
   &__actions {
     display: flex;
     gap: 0.5rem;
@@ -124,6 +140,9 @@ watch(selectedGridSize, (current) => {
 
   &__action {
     line-height: 1;
+    /* Ensure minimum touch target size (44x44px recommended by Apple/Google) */
+    min-height: 2.75rem;
+    min-width: 2.75rem;
 
     &--settings {
       font-size: 1.5rem;
@@ -138,6 +157,52 @@ watch(selectedGridSize, (current) => {
 
     & + & {
       margin-block-start: 0.5rem;
+    }
+  }
+}
+
+/* Mobile-specific styles */
+@media (max-width: 768px) {
+  .board-controls {
+    margin-block-end: 1rem;
+    gap: 0.75rem;
+
+    &__instructions {
+      font-size: 0.9rem;
+
+      &--desktop {
+        display: none;
+      }
+
+      &--mobile {
+        display: inline;
+      }
+    }
+
+    &__actions {
+      gap: 0.375rem;
+    }
+
+    &__action {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.9rem;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .board-controls {
+    flex-direction: column;
+    align-items: stretch;
+    margin-block-end: 0.75rem;
+
+    &__instructions {
+      text-align: center;
+      font-size: 0.85rem;
+    }
+
+    &__actions {
+      justify-content: center;
     }
   }
 }

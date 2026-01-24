@@ -25,6 +25,12 @@ $button-color-active: rgb(116 99 82);
   transition-property: transform, background-color;
   transition-duration: 200ms;
   transition-timing-function: ease-in-out;
+  /* Minimum touch target size */
+  min-height: 2.75rem;
+  /* Better touch interaction */
+  touch-action: manipulation;
+  /* Prevent double-tap zoom on iOS */
+  -webkit-tap-highlight-color: transparent;
 
   &:hover {
     background-color: $button-color-active;
@@ -43,6 +49,15 @@ $button-color-active: rgb(116 99 82);
     &:hover {
       background-color: transparent;
     }
+  }
+}
+
+/* Mobile-specific button styles */
+@media (max-width: 768px) {
+  .app-button {
+    /* Slightly larger touch targets on mobile */
+    min-height: 3rem;
+    padding: 0.625rem 1.125rem;
   }
 }
 </style>

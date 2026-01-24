@@ -18,16 +18,30 @@ main,
 
 html {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  /* Prevent text size adjustment on orientation change for mobile */
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
   background-color: #faf8ef;
   color: var(--text-color-dark);
+  /* Prevent pull-to-refresh on mobile browsers */
+  overscroll-behavior-y: contain;
+  /* Prevent text selection during touch interactions */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  /* Disable tap highlight on mobile */
+  -webkit-tap-highlight-color: transparent;
 }
 
 main {
   padding-inline: 1rem;
   padding-block-end: 1rem;
+  /* Enable GPU acceleration for smoother animations */
+  transform: translateZ(0);
 }
 
 ul {
@@ -46,8 +60,51 @@ p {
   z-index: 10;
 }
 
+/* Tablet and smaller devices */
 @media (max-width: 768px) {
   html {
     font-size: 14px;
+  }
+
+  main {
+    padding-inline: 0.75rem;
+    padding-block-end: 0.75rem;
+  }
+}
+
+/* Mobile devices */
+@media (max-width: 480px) {
+  html {
+    font-size: 13px;
+  }
+
+  main {
+    padding-inline: 0.5rem;
+    padding-block-end: 0.5rem;
+    padding-block-start: 0.5rem;
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 360px) {
+  html {
+    font-size: 12px;
+  }
+
+  main {
+    padding-inline: 0.25rem;
+    padding-block-end: 0.25rem;
+  }
+}
+
+/* Landscape orientation adjustments */
+@media (max-height: 600px) and (orientation: landscape) {
+  html {
+    font-size: 12px;
+  }
+
+  main {
+    padding-block-start: 0.25rem;
+    padding-block-end: 0.25rem;
   }
 }

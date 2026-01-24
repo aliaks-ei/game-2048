@@ -7,7 +7,7 @@
     <game-board-controls @click:new-game="handleNewGameClick"></game-board-controls>
 
     <!-- Board -->
-    <div class="game-board-container">
+    <div ref="gameBoardRef" class="game-board-container">
       <grid-container :size="gridSize"></grid-container>
       <tile-container>
         <tile-item v-for="tile in renderedTiles" :key="tile.id" :tile="tile"></tile-item>
@@ -27,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, watch } from "vue";
+import { onMounted, onBeforeUnmount, watch, ref } from "vue";
 import { storeToRefs } from "pinia";
 
 import AppButton from "@/components/App/Button/AppButton.vue";
@@ -42,7 +42,10 @@ import { useGridCellsStore } from "@/stores/gridCells";
 import { useTilesStore } from "@/stores/tiles";
 import { useGameStateStore } from "@/stores/gameState";
 import { useUserInput } from "@/composables/useUserInput";
+import { useSwipeGesture } from "@/composables/useSwipeGesture";
 import { generateNumArray } from "@/utils";
+
+const gameBoardRef = ref<HTMLElement | null>(null);
 
 const { gridCells } = storeToRefs(useGridCellsStore());
 const { resetGridCells } = useGridCellsStore();
@@ -51,7 +54,16 @@ const { addTileToCell, setRenderedTiles } = useTilesStore();
 const { score, bestScore, gameOverDialog, gridSize, numObstacles } =
   storeToRefs(useGameStateStore());
 const { endGame, setCanAcceptUserInput, setScore, hideGameOverDialog } = useGameStateStore();
-const { handleUserInput } = useUserInput();
+const { handleUserInput, handleSwipeInput } = useUserInput();
+
+const { enableSwipeGesture, disableSwipeGesture } = useSwipeGesture(
+  gameBoardRef,
+  handleSwipeInput,
+  {
+    minSwipeDistance: 30,
+    maxSwipeTime: 300,
+  },
+);
 
 function startNewGame() {
   setScore(0);
@@ -95,11 +107,19 @@ onMounted(() => {
   setRenderedTiles(gridCells.value.filter((cell) => cell.tile).map((cell) => cell.tile!));
   setCanAcceptUserInput(true);
 
+  // Enable keyboard input
   document.addEventListener("keyup", handleUserInput);
+
+  // Enable swipe gestures for mobile
+  enableSwipeGesture();
 });
 
 onBeforeUnmount(() => {
+  // Disable keyboard input
   document.removeEventListener("keyup", handleUserInput);
+
+  // Disable swipe gestures
+  disableSwipeGesture();
 });
 </script>
 
@@ -129,5 +149,41 @@ onBeforeUnmount(() => {
   padding: var(--board-gap);
   background-color: rgb(187 173 160);
   border-radius: var(--board-border-radius);
+  /* Prevent text selection during swipe gestures */
+  user-select: none;
+  -webkit-user-select: none;
+  /* Disable touch callout on iOS */
+  -webkit-touch-callout: none;
+  /* Prevent double-tap zoom */
+  touch-action: none;
+}
+
+/* Mobile-specific board styles */
+@media (max-width: 768px) {
+  .game-wrapper {
+    --board-gap: 1vmin;
+  }
+}
+
+@media (max-width: 480px) {
+  .game-wrapper {
+    --board-gap: 0.85vmin;
+    --board-border-radius: 0.75vmin;
+  }
+}
+
+@media (max-width: 360px) {
+  .game-wrapper {
+    --board-gap: 0.75vmin;
+    --board-border-radius: 0.5vmin;
+  }
+}
+
+/* Landscape orientation optimizations */
+@media (max-height: 600px) and (orientation: landscape) {
+  .game-wrapper {
+    --board-gap: 0.75vmin;
+    justify-content: center;
+  }
 }
 </style>
